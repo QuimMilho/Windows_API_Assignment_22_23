@@ -19,7 +19,7 @@ int _tmain(int argc, LPTSTR argv[]) {
     }
 #endif
 
-    // Mem�ria Partilhada dsad sad as dsadsadas dsad asd
+    // Memória Partilhada dsad sad as dsadsadas dsad asd
 
     // Obtém a handle para o ficheiro
     // CreateFile()
@@ -37,15 +37,13 @@ int _tmain(int argc, LPTSTR argv[]) {
 
 
 
-    // Mapear uma vista do ficheiro no seu espaço de endere�amento
+    // Mapear uma vista do ficheiro no seu espaço de endereçamento
     // MapViewOfFile
 
 
 
-    // Usa a mem�ria partilhada através da vista (sintaxe habitual ponteiros * -> [])
+    // Usa a memória partilhada através da vista (sintaxe habitual ponteiros * -> [])
 
-
-    Carlos da Maia
 
 
     // Desmapeia a vista
