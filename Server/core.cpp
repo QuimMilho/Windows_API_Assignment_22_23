@@ -42,7 +42,7 @@ int _tmain(int argc, LPTSTR argv[]) {
 
 
 
-    // Usa a mem�ria partilhada atrav�s da vista (sintaxe habitual ponteiros * -> [])
+    // Usa a memória partilhada atrav�s da vista (sintaxe habitual ponteiros * -> [])
 
     // Desmapeia a vista
     // UnmapViewOfFile()
