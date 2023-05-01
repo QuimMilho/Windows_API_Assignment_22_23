@@ -26,14 +26,14 @@ int _tmain(int argc, LPTSTR argv[]) {
 
 
     // Criar o objeto FileMapping usando o handle anterior
-    // HANDLE WINAPI CreateFileMapping (
-    //      HANDLE hFile, // Ficheiro a usar
-    //      LPSECURITY_ATTRIBUTES lpAttributes,
-    //      DWORD flProtect, // flags para: escrita/leitura/execução
-    //      DWORD dwMaximumSizeHigh, // Tamanho dado em duas DWORDS
-    //      DWORD dwMaximumSizeLow, // (mais significativo e menos significativo)
-    //      LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
-    // );
+    HANDLE WINAPI CreateFileMapping (
+         HANDLE hFile, // Ficheiro a usar
+         LPSECURITY_ATTRIBUTES lpAttributes,
+         DWORD flProtect, // flags para: escrita/leitura/execução
+         DWORD dwMaximumSizeHigh, // Tamanho dado em duas DWORDS
+         DWORD dwMaximumSizeLow, // (mais significativo e menos significativo)
+         LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
+    );
 
 
     // Mapear uma vista do ficheiro no seu espaço de endereçamento
