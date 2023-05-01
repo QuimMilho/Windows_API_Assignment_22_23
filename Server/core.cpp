@@ -19,29 +19,30 @@ int _tmain(int argc, LPTSTR argv[]) {
     }
 #endif
 
-    // Memória Partilhada
+    // Memï¿½ria Partilhada
 
-    // Obtém a handle para o ficheiro
+    // Obtï¿½m a handle para o ficheiro
     // CreateFile()
 
 
     // Criar o objeto FileMapping usando o handle anterior
-    // HANDLE WINAPI CreateFileMapping (
-    //      HANDLE hFile, // Ficheiro a usar
-    //      LPSECURITY_ATTRIBUTES lpAttributes,
-    //      DWORD flProtect, // flags para: escrita/leitura/execução
-    //      DWORD dwMaximumSizeHigh, // Tamanho dado em duas DWORDS
-    //      DWORD dwMaximumSizeLow, // (mais significativo e menos significativo)
-    //      LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
-    // );
+    HANDLE WINAPI CreateFileMapping (
+         HANDLE hFile, // Ficheiro a usar
+         LPSECURITY_ATTRIBUTES lpAttributes,
+         DWORD flProtect, // flags para: escrita/leitura/execuï¿½ï¿½o
+         DWORD dwMaximumSizeHigh, // Tamanho dado em duas DWORDS
+         DWORD dwMaximumSizeLow, // (mais significativo e menos significativo)
+         LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
+    );
 
 
-    // Mapear uma vista do ficheiro no seu espaço de endereçamento
+
+    // Mapear uma vista do ficheiro no seu espaï¿½o de endereï¿½amento
     // MapViewOfFile
 
 
 
-    // Usa a memória partilhada através da vista (sintaxe habitual ponteiros * -> [])
+    // Usa a memï¿½ria partilhada atravï¿½s da vista (sintaxe habitual ponteiros * -> [])
 
 
 
