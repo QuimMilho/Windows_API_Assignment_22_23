@@ -25,7 +25,7 @@ int _tmain(int argc, LPTSTR argv[]) {
     // CreateFile()
 
 
-    // Criar o objeto FileMapping usando o handle anterior           ajshbdaknslduajhsdibgkansbdujkahbsndjahsbkdhn
+    // Criar o objeto FileMapping usando o handle anterior
     // HANDLE WINAPI CreateFileMapping (
     //      HANDLE hFile, // Ficheiro a usar
     //      LPSECURITY_ATTRIBUTES lpAttributes,
