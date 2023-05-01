@@ -45,7 +45,7 @@ int _tmain(int argc, LPTSTR argv[]) {
     // Usa a mem�ria partilhada atrav�s da vista (sintaxe habitual ponteiros * -> [])
 
 
-    Carlos da Maia
+    Carlos da Maiaaaaaaaa
 
 
     // Desmapeia a vista
