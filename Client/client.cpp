@@ -6,7 +6,15 @@
 
 #define MAX 256
 
-int _tmain(int argc, LPTSTR argv[]) {
+#ifdef UNICODE 
+#define print wprintf
+#define scan wscanf
+#else
+#define print printf
+#define scan scanf
+#endif
+
+int _tmain(int argc, TCHAR * argv[]) {
 
 #ifdef UNICODE 
     if (_setmode(_fileno(stdin), _O_WTEXT) == -1) {
