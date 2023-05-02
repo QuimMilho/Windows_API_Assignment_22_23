@@ -6,23 +6,15 @@
 
 #define MAX 256
 
-#ifdef UNICODE 
-#define print wprintf
-#define scan wscanf
-#else
-#define print printf
-#define scan scanf
-#endif
-
 int _tmain(int argc, TCHAR * argv[]) {
 
 #ifdef UNICODE 
     if (_setmode(_fileno(stdin), _O_WTEXT) == -1) {
-        _tprintf(TEXT("Failed to set input mode.\n"));
+        _tprintf(_T("Failed to set input mode.\n"));
         return 1;
     }
     if (_setmode(_fileno(stdout), _O_WTEXT) == -1) {
-        _tprintf(TEXT("Failed to set output mode.\n"));
+        _tprintf(_T("Failed to set output mode.\n"));
         return 1;
     }
 #endif
