@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 #include <tchar.h>
 #include <fcntl.h>
 #include <io.h>
@@ -6,7 +6,7 @@
 
 #define MAX 256
 
-int _tmain(int argc, TCHAR * argv[]) {
+int _tmain(int argc, TCHAR* argv[]) {
 
 #ifdef UNICODE 
     if (_setmode(_fileno(stdin), _O_WTEXT) == -1) {
