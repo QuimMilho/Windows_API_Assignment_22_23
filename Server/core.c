@@ -54,6 +54,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     // Fecha a handle do ficheiro
     // CloseHandle()
+    mainLoop();
 
     return 0;
 }
