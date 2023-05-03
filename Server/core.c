@@ -4,6 +4,8 @@
 #include <io.h>
 #include <stdio.h>
 
+#include "Handler.h"
+
 #define MAX 256
 
 int _tmain(int argc, TCHAR* argv[]) {
