@@ -10,6 +10,8 @@
 
 int _tmain(int argc, TCHAR* argv[]) {
 
+    // Definição do UNICODE no output e input
+
 #ifdef UNICODE 
     if (_setmode(_fileno(stdin), _O_WTEXT) == -1) {
         _tprintf(_T("Failed to set input mode.\n"));
@@ -21,40 +23,27 @@ int _tmain(int argc, TCHAR* argv[]) {
     }
 #endif
 
-    // Memória Partilhada
+    // Verificação se programa está a correr ou não
 
-    // Obtém a handle para o ficheiro
-    // CreateFile()
+    HANDLE mut = CreateMutex(NULL, FALSE, _T("SapoServerMutex"));
 
+    if (mut == NULL) {
+        _tprintf(_T("Error creating Mutex: %d"), GetLastError());
+        return 2;
+    }
+    else if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        _tprintf(_T("Server is already running!"));
+        return 0;
+    }
 
-    // Criar o objeto FileMapping usando o handle anterior
-    //HANDLE WINAPI CreateFileMapping (
-    //     HANDLE hFile, // Ficheiro a usar
-    //     LPSECURITY_ATTRIBUTES lpAttributes,
-    //     DWORD flProtect, // flags para: escrita/leitura/execu��o
-    //     DWORD dwMaximumSizeHigh, // Tamanho dado em duas DWORDS
-    //     DWORD dwMaximumSizeLow, // (mais significativo e menos significativo)
-    //     LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
-    //);
-
-
-
-    // Mapear uma vista do ficheiro no seu espa�o de endereçamento
-    // MapViewOfFile
-
-
-
-    // Usa a memória partilhada atrav�s da vista (sintaxe habitual ponteiros * -> [])
-
-    // Desmapeia a vista
-    // UnmapViewOfFile()
-
-    // Fecha a handle
-    // CloseHandle()
-
-    // Fecha a handle do ficheiro
-    // CloseHandle()
+    // Loop do jogo
+    
     mainLoop();
+
+    // Quando o jogo acaba, o servidor é libertado para um novo poder ser aberto
+
+    ReleaseMutex(mut);
+    CloseHandle(mut);
 
     return 0;
 }
