@@ -17,17 +17,21 @@
 // Definitions
 
 // Loop do jogo
-int mainLoop();
+int mainLoop(BOOL running);
 
 // Game Thread
 
 DWORD WINAPI GameThread(LPVOID lpParam) {
-	mainLoop();
+	THREADINFO* threadInfo = (THREADINFO*)lpParam;
+	threadInfo->running = TRUE;
+	mainLoop(&(threadInfo->running));
+	_tprintf_s(_T("Thread terminado!"));
+	return 0;
 }
 
 // Loop do jogo
 
-int mainLoop() {
+int mainLoop(BOOL* running) {
 
 	// Frequência do relógio do computador
 	LARGE_INTEGER frequency;
@@ -49,7 +53,7 @@ int mainLoop() {
 	_tprintf(_T("Game loop started!\n"));
 
 	// Game loop
-	while (ticks < TICKRATE * 100) {
+	while (*running) {
 		//Busca do tempo atual
 		QueryPerformanceCounter(&now);
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Handler.h"
+
 // Códigos dos comandos
 
 #define DONE 0
@@ -7,7 +9,7 @@
 #define NO_ARGS 2
 #define NO_ENOUGH_ARGS 3
 #define INV_ARGS 4
-#define ERROR 5
+#define CMD_ERROR 5
 
 // Origem dos comandos
 
@@ -16,6 +18,6 @@
 
 // Lê e executa os comandos!
 
-int getCommands();
+int getCommands(THREADINFO * threadInfo);
 
-int process(TCHAR* cmdStr, int origin);
+int process(TCHAR* cmdStr, int origin, THREADINFO* threadInfo);
