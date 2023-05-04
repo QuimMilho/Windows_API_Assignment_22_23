@@ -19,39 +19,35 @@ int _tmain(int argc, TCHAR* argv[]) {
     }
 #endif
 
-    // Memória Partilhada
+    //1 - Obtém handle para o objecto memória partilhada
+    //
+    //    HANDLE WINAPI OpenFileMapping(
+    //          DWORD dwDesiredAccess, // acesso pretendido
+    //          BOOL bInheritHandle,
+    //          LPCTSTR lpName // nome dado ao recurso (ficheiro mapeado)
+    //    );
 
-    // Obtém a handle para o ficheiro
-    // CreateFile()
+    //2 – Mapeia uma vista da memória partilhada no seu espaço de endereçamento
+    //
+    //    LPVOID WINAPI MapViewOfFile (
+    //          HANDLE hFileMappingObject, // Handle do ficheiro mapeado
+    //          DWORD dwDesiredAccess, // Flags de acesso (ler, escrever)
+    //          DWORD dwFileOffsetHigh, // Início dentro do bloco pretendido
+    //          DWORD dwFileOffsetLow, // dentro do ficheiro (+signific., -signific.)
+    //          SIZE_T dwNumberOfBytesToMap // Tamanho da view pretendida
+    //    );
 
+    //3 – Usa a memória partilhada através da vista(ponteiros ou[])
 
-    // Criar o objeto FileMapping usando o handle anterior
-    //HANDLE WINAPI CreateFileMapping (
-    //     HANDLE hFile, // Ficheiro a usar
-    //     LPSECURITY_ATTRIBUTES lpAttributes,
-    //     DWORD flProtect, // flags para: escrita/leitura/execu��o
-    //     DWORD dwMaximumSizeHigh, // Tamanho dado em duas DWORDS
-    //     DWORD dwMaximumSizeLow, // (mais significativo e menos significativo)
-    //     LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
-    //);
+    //4 – Desmapeia a vista, eventualmente no final do processo
+    //    LPVOID WINAPI UnmapViewOfFile(
+    // 
+    //          // Ponteiro para o inicio da view (vem de MapViewOfFile())
+    //          LPCVOID lpBaseAddress
+    //    );
 
-
-
-    // Mapear uma vista do ficheiro no seu espa�o de endereçamento
-    // MapViewOfFile
-
-
-
-    // Usa a memória partilhada atrav�s da vista (sintaxe habitual ponteiros * -> [])
-
-    // Desmapeia a vista
-    // UnmapViewOfFile()
-
-    // Fecha a handle
-    // CloseHandle()
-
-    // Fecha a handle do ficheiro
-    // CloseHandle()
+    //5 – Fecha o handle
+    //    CloseHandle()
 
     return 0;
 }
