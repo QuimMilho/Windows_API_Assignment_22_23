@@ -14,6 +14,17 @@
 
 #define PRECISION PRECISION_MICRO
 
+// Definitions
+
+// Loop do jogo
+int mainLoop();
+
+// Game Thread
+
+DWORD WINAPI GameThread(LPVOID lpParam) {
+	mainLoop();
+}
+
 // Loop do jogo
 
 int mainLoop() {
@@ -32,13 +43,13 @@ int mainLoop() {
 	// Definição das váriáveis e do tempo entre cada tick
 	// delta é o tempo entre cada tick (1 segundo dividido pelo numero de ticks)
 	double eleapsed_time, delta = PRECISION / (double) TICKRATE;
-	int ticks = 0, lastPrinted = -1;
+	int ticks = 0, lastPrinted = 0;
 
 	// Log do servidor a começar
 	_tprintf(_T("Game loop started!\n"));
 
 	// Game loop
-	while (ticks < 6400) {
+	while (ticks < TICKRATE * 100) {
 		//Busca do tempo atual
 		QueryPerformanceCounter(&now);
 

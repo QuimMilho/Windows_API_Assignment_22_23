@@ -5,7 +5,7 @@
 
 // Tickrate do jogo
 
-#define TICKRATE 64
+#define TICKRATE 10
 
 // Função de tick do jogo
 

@@ -1,10 +1,12 @@
 #pragma once
 
+#include <Windows.h>
+
 #ifndef HANDLER_H
 #define HANDLER_H
 
-// Loop do jogo
+// Game Thread
 
-int mainLoop();
+DWORD WINAPI GameThread(LPVOID lpParam);
 
 #endif //HANDLER_H

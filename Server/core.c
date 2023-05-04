@@ -37,8 +37,12 @@ int _tmain(int argc, TCHAR* argv[]) {
     }
 
     // Loop do jogo
-    
-    mainLoop();
+    DWORD gameThreadId;
+    HANDLE gameThread = CreateThread(NULL, NULL, GameThread, NULL, NULL, &gameThreadId);
+
+    //Comandos
+    TCHAR teste[250];
+    _tscanf_s("%s", teste, 250);
 
     // Quando o jogo acaba, o servidor é libertado para um novo poder ser aberto
 
