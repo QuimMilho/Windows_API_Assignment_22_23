@@ -171,5 +171,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     //     LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
     //);
 
+
+
     return 0;
 }
