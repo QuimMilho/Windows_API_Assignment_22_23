@@ -15,21 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="core.c">
+    <ClCompile Include="dllEntry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Handler.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Game.c">
+    <ClCompile Include="MemoryDLL.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.h">
+    <ClInclude Include="MemoryDLL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
