@@ -19,6 +19,23 @@
 // Loop do jogo
 int mainLoop(BOOL running);
 
+// Cria os registry
+int createOptions();
+
+// Carrega as definições
+
+int loadOptions(GAME_SETTINGS * gameSettings) {
+
+}
+
+int createOptions(GAME_SETTINGS* gameSettings) {
+
+}
+
+int setOptions(GAME_SETTINGS* gameSettings, int k) {
+
+}
+
 // Game Thread
 
 DWORD WINAPI GameThread(LPVOID lpParam) {

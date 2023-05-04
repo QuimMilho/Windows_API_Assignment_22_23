@@ -18,6 +18,6 @@
 
 // Lê e executa os comandos!
 
-int getCommands(THREADINFO * threadInfo);
+int getCommands(THREADINFO * threadInfo, GAME_SETTINGS* gs);
 
-int process(TCHAR* cmdStr, int origin, THREADINFO* threadInfo);
+int process(TCHAR* cmdStr, int origin, THREADINFO* threadInfo, GAME_SETTINGS* gs);

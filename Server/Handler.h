@@ -2,9 +2,6 @@
 
 #include <Windows.h>
 
-#ifndef HANDLER_H
-#define HANDLER_H
-
 // Thread Info
 
 typedef struct ThreadInfo { 
@@ -13,8 +10,19 @@ typedef struct ThreadInfo {
 	DWORD threadId;		// Thread ID
 } THREADINFO;
 
+// Definições do jogo
+
+typedef struct GameSettings { 
+	DWORD lanes; 
+	DWORD init_speed; 
+} GAME_SETTINGS;
+
+// Load Settings
+
+int loadOptions(GAME_SETTINGS* gameSettings);
+
+int setOptions(GAME_SETTINGS* gameSettings, int k);
+
 // Game Thread
 
 DWORD WINAPI GameThread(LPVOID lpParam);
-
-#endif //HANDLER_H

@@ -37,23 +37,25 @@ int _tmain(int argc, TCHAR* argv[]) {
         return 0;
     }
 
+    // Carrega as definições
+
+    GAME_SETTINGS gs = {0, 0};
+    int res = loadOptions(&gs);
+
     // Loop do jogo
+
     THREADINFO threadInfo = { NULL, FALSE, 0 };
     threadInfo.thread = CreateThread(NULL, 0, GameThread, (LPVOID) & threadInfo, 0, &(threadInfo.threadId));
 
     //Comandos
+
     int err = getCommands(&threadInfo);
 
     // Quando o jogo acaba
     // Verifica se a Thread já está fechada
-    /*
-    DWORD codigo = 0;
-    do {
-        if (threadInfo.thread != NULL)
-            GetExitCodeThread(threadInfo.thread, &codigo);
-    } while (codigo != 0);
-    */
+    
     if (threadInfo.thread) WaitForSingleObject(threadInfo.thread, 5000);
+
     // O mutex é libertado para um novo servidor poder ser aberto
 
     ReleaseMutex(mut);

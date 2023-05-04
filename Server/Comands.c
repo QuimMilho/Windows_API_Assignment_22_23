@@ -12,13 +12,13 @@
 typedef struct arguments { TCHAR arg[MAX]; } Args;
 
 // Reencaminha os comandos para onde podem ser executados
-// Comandos de server: pausa, retoma, recomeça, sair
+// Comandos de server: pausa, retoma, recomeça, sair, define
 // Comandos de server + operator: stop, obstáculo, inverte
-int execute(TCHAR* cmdName, Args * args, int nargs, int origin, THREADINFO* threadInfo);
+int execute(TCHAR* cmdName, Args * args, int nargs, int origin, THREADINFO* threadInfo, GAME_SETTINGS* gs);
 
 //Funcoes 
 
-int getCommands(THREADINFO * threadInfo) {
+int getCommands(THREADINFO * threadInfo, GAME_SETTINGS * gs) {
 	TCHAR cmd[MAX];
 	do {
 		_tprintf_s(_T(">"));
@@ -26,7 +26,7 @@ int getCommands(THREADINFO * threadInfo) {
 		_fgetts(cmd, MAX, stdin);
 		cmd[_tcslen(cmd) - 1] = '\0';
 		if (_tcslen(cmd) != 0) {
-			int err = process(cmd, SERVER, threadInfo);
+			int err = process(cmd, SERVER, threadInfo, gs);
 			switch (err) {
 			case NO_EXIST:
 				_tprintf_s(_T("Esse comando não existe!\n"));
@@ -52,7 +52,7 @@ int getCommands(THREADINFO * threadInfo) {
 	return 0;
 }
 
-int process(TCHAR * cmdStr, int origin, THREADINFO * threadInfo) {
+int process(TCHAR * cmdStr, int origin, THREADINFO * threadInfo, GAME_SETTINGS* gs) {
 	// Nome do comando
 	TCHAR cmd[MAX] = _T("");
 	// N de argumentos
@@ -118,14 +118,14 @@ int process(TCHAR * cmdStr, int origin, THREADINFO * threadInfo) {
 	}
 	
 	// Executa o comando
-	int err = execute(cmd, args, nArgs, origin, threadInfo);
+	int err = execute(cmd, args, nArgs, origin, threadInfo, gs);
 
 	// Liberta a memória
 	free(args);
 	return err;
 }
 
-int execute(TCHAR* cmdName, TCHAR* args, int nargs, int origin, THREADINFO* threadInfo) {
+int execute(TCHAR* cmdName, TCHAR* args, int nargs, int origin, THREADINFO* threadInfo, GAME_SETTINGS* gs) {
 	switch (origin)
 	{
 	case SERVER:
@@ -140,6 +140,9 @@ int execute(TCHAR* cmdName, TCHAR* args, int nargs, int origin, THREADINFO* thre
 		}
 		else if (_tcscmp(cmdName, _T("sair")) == 0) {
 			threadInfo->running = FALSE;
+			return DONE;
+		}
+		else if (_tcscmp(cmdName, _T("define")) == 0) {
 			return DONE;
 		}
 	case OPERATOR:
