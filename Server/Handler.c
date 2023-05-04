@@ -63,6 +63,7 @@ int mainLoop() {
 		}
 
 		// Cálculo do tempo entre o ultimo print e o tempo atual
+		/*
 		eleapsed_time = floor((now.QuadPart - lastPrint.QuadPart) / (double)frequency.QuadPart * PRECISION);
 		// Uma vez por segundo são impressas as tickrates
 		if (eleapsed_time > PRECISION) {
@@ -70,6 +71,7 @@ int mainLoop() {
 			_tprintf(_T("%d %d\n"), ticks, ticks - lastPrinted);
 			lastPrinted = ticks;
 		}
+		*/
 	}
 	return 0;
 }

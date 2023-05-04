@@ -19,11 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Comands.c" />
     <ClCompile Include="core.c" />
     <ClCompile Include="Game.c" />
     <ClCompile Include="Handler.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Commands.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Handler.h" />
   </ItemGroup>

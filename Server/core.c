@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "Handler.h"
+#include "Commands.h"
 
 #define MAX 256
 
@@ -41,8 +42,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     HANDLE gameThread = CreateThread(NULL, NULL, GameThread, NULL, NULL, &gameThreadId);
 
     //Comandos
-    TCHAR teste[250];
-    _tscanf_s("%s", teste, 250);
+    getCommands();
 
     // Quando o jogo acaba, o servidor é libertado para um novo poder ser aberto
 
