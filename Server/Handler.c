@@ -20,180 +20,122 @@ int createOptions(GAME_SETTINGS* gameSettings) {
 	LONG createStatus;
 
     // Criar a chave do jogo em HKEY_CURRENT_USER\Software
-    createStatus = RegCreateKeyEx(
-        HKEY_CURRENT_USER,
-        TEXT("Software\\Jogo"),
-        0,
-        NULL,
-        REG_OPTION_NON_VOLATILE,
-        KEY_ALL_ACCESS,
-        NULL,
-
-        // Handle da key atual (Jogo)
-        &hKey,
-
-        NULL
-    );
+    createStatus = RegCreateKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, NULL, REG_OPTION_NON_VOLATILE,
+        KEY_ALL_ACCESS, NULL, &hKey, NULL);
 
     if (createStatus != ERROR_SUCCESS) {
-        printf("Erro a criar a chave 'Jogo'. Código de Erro: %ld\n", createStatus);
+        _tprintf_s(_T("Erro a criar a chave 'Jogo'. Código de Erro: %ld\n"), createStatus);
         RegCloseKey(hKey);
         return 1;
     }
 
     // Velocidade -> Sub-chave de Jogo
-    createStatus = RegCreateKeyEx(
-        hKey,
-        TEXT("velocidade"),
-        0,
-        NULL,
-        REG_OPTION_NON_VOLATILE,
-        KEY_ALL_ACCESS,
-        NULL,
-
-        // Handle da parent key (Jogo)
-        &hKey,
-
-        NULL
-    );
+    createStatus = RegCreateKeyEx(hKey, VELOCITY_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
+        NULL, &hKey, NULL);
 
     if (createStatus != ERROR_SUCCESS) {
-        printf("Erro a criar sub-chave 'velocidade'. Código de Erro : % ld\n", createStatus);
+        _tprintf_s(_T("Erro a criar sub-chave '%s'. Código de Erro : % ld\n"), VELOCITY_KEY, createStatus);
         RegCloseKey(hKey);
         return 1;
     }
 
     // Faixas -> Sub-chave de Jogo
-    createStatus = RegCreateKeyEx(
-        hKey,
-        TEXT("faixas"),
-        0,
-        NULL,
-        REG_OPTION_NON_VOLATILE,
-        KEY_ALL_ACCESS,
-        NULL,
-
-        // Handle da parent key (Jogo)
-        &hKey,
-
-        NULL
-    );
+    createStatus = RegCreateKeyEx(hKey, LANE_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
+        NULL, &hKey, NULL);
 
     if (createStatus != ERROR_SUCCESS) {
-        printf("Erro a criar sub-chave 'faixas'. Código de Erro : % ld\n", createStatus);
+        _tprintf_s(_T("Erro a criar sub-chave '%s'. Código de Erro : % ld\n"), LANE_KEY, createStatus);
         RegCloseKey(hKey);
         return 1;
     }
 
     // Chamar a função setOptions com os valores pretendidos
 
+    setOptions(hKey, gameSettings, VELOCITY_KEY, DEFAULT_SPEED);
+    setOptions(hKey, gameSettings, LANE_KEY, DEFAULT_LANES);
+
     // Fechar a parent key Jogo com o seu handler hkey
     RegCloseKey(hKey);
+
+    return 0;
 }
 
 // Carrega as definições
 int loadOptions(GAME_SETTINGS * gameSettings) {
 
     HKEY hKey;
-    LONG openStatus, getValueStatus;
-    DWORD nVelocidade, nFaixas;
+    LONG openStatus;
     DWORD valueType;
 
     // Tipo de dados das sub-keys -> Valores Inteiros
     DWORD   dataSize = sizeof(DWORD),
 
     // Abre a parent key Jogo
-    openStatus = RegOpenKeyEx(
-        HKEY_CURRENT_USER,
-        TEXT("Software\\Jogo"),
-        0,
-        KEY_READ,
-        &hKey
-    );
+    openStatus = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, KEY_READ, &hKey);
 
     if (openStatus != ERROR_SUCCESS) {
-        printf("Failed to open registry key. Error code: %ld\n", openStatus);
+        _tprintf_s(_T("Failed to open registry key. Error code: %ld\n"), openStatus);
         return 1;
     }
 
     // Obtém o valor da velocidade -> vVelocidade
-    getValueStatus = RegGetValue(
-        hKey,
-        NULL,
-        TEXT("velocidade"),
-        RRF_RT_REG_DWORD,
-        &valueType,
-        &nVelocidade,
-        &dataSize
-    );
+    openStatus = RegGetValue(hKey, NULL, VELOCITY_KEY, RRF_RT_REG_DWORD, &valueType,
+        &(gameSettings->init_speed), &dataSize);
 
-    if (getValueStatus != ERROR_SUCCESS) {
-        printf("Erro ao aceder ao valor da sub-chave 'carros'. Código de Erro: %ld\n", getValueStatus);
+    if (openStatus != ERROR_SUCCESS) {
+        _tprintf_s(_T("Erro ao aceder ao valor da sub-chave '%s'. Código de Erro: %ld\n"), VELOCITY_KEY, openStatus);
         RegCloseKey(hKey);
+        return 1;
     }
 
     // Obtém o valor das faixas -> nFaixas
-    getValueStatus = RegGetValue(
-        hKey,
-        NULL,
-        TEXT("faixas"),
-        RRF_RT_REG_DWORD,
-        &valueType,
-        &nFaixas,
-        &dataSize
-    );
+    openStatus = RegGetValue(hKey, NULL, LANE_KEY, RRF_RT_REG_DWORD, &valueType, 
+        &(gameSettings->lanes), &dataSize);
 
-    if (getValueStatus != ERROR_SUCCESS) {
-        printf("Erro ao aceder ao valor da sub-chave 'faixas'. Código de Erro: %ld\n", getValueStatus);
+    if (openStatus != ERROR_SUCCESS) {
+        _tprintf_s(_T("Erro ao aceder ao valor da sub-chave '%s'. Código de Erro: %ld\n"), LANE_KEY, openStatus);
         RegCloseKey(hKey);
+        return 1;
     }
 
     // Close the "game" key
     RegCloseKey(hKey);
 
+    return 0;
 }
 
 // Atribui valores ás sub-chaves
-int setOptions(HKEY hKey, GAME_SETTINGS* gameSettings, int k) {
+int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, TCHAR * option, DWORD value) {
 
-    LONG    setValueStatus;
-    DWORD   nVelocidade = 1,
-            nFaixas = 1;
+    LONG setValueStatus;
+    BOOL keyAlreadyOpened = TRUE;
 
-    // Atribuir à sub-chave "velocidade" o valor vVelocidade
-    setValueStatus = RegSetValueEx(
-        hKey,
-        TEXT("velocidade"),
-        0,
-        REG_DWORD,
-        (const BYTE*)&nVelocidade,
-        sizeof(nVelocidade)
-    );
-
-    if (setValueStatus != ERROR_SUCCESS) {
-        printf("Erro ao atribuir valor à sub-chave 'velocidade'. Código de Erro: %ld\n", setValueStatus);
-        RegCloseKey(hKey);
-        return 1;
+    // Caso receba uma key que ainda não esteja aberta
+    if (hKey == NULL) {
+        keyAlreadyOpened = FALSE;
+        // Abrir Key
+        LONG openStatus;
+        openStatus = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, KEY_READ, &hKey);
+        if (openStatus != ERROR_SUCCESS) {
+            _tprintf_s(_T("Failed to open registry key. Error code: %ld\n"), openStatus);
+            return 1;
+        }
     }
 
-    // Atribuir à sub-chave "faixas" o valor vFaixas
-    setValueStatus = RegSetValueEx(
-        hKey,
-        TEXT("faixas"),
-        0,
-        REG_DWORD,
-        (const BYTE*)&nFaixas,
-        sizeof(nFaixas)
-    );
+    // Atribuir à sub-chave "velocidade" o valor vVelocidade
+    setValueStatus = RegSetValueEx(hKey, option, 0, REG_DWORD,
+        (const BYTE*)&value, sizeof(DWORD));
 
     if (setValueStatus != ERROR_SUCCESS) {
-        printf("Erro ao atribuir valor à sub-chave 'faixas'. Código de Erro: %ld\n", setValueStatus);
-        RegCloseKey(hKey);
+        _tprintf_s(_T("Erro ao atribuir valor à sub-chave '%s'. Código de Erro: %ld\n"), option, setValueStatus);
+        if (!keyAlreadyOpened) RegCloseKey(*hKey);
         return 1;
     }
 
     // Fechar a parent key Jogo com o seu handler hkey
-    RegCloseKey(hKey);
+    if (!keyAlreadyOpened) RegCloseKey(*hKey);
+
+    return 0;
 }
 
 // Game Thread
