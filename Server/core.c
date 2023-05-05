@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "Handler.h"
+#include "Commands.h"
 
 #define MAX 256
 
@@ -36,18 +37,29 @@ int _tmain(int argc, TCHAR* argv[]) {
         return 0;
     }
 
+    // Carrega as definições
+
+    GAME_SETTINGS gs = {0, 0};
+    int res = loadOptions(&gs);
+
     // Loop do jogo
-    DWORD gameThreadId;
-    HANDLE gameThread = CreateThread(NULL, NULL, GameThread, NULL, NULL, &gameThreadId);
+
+    THREADINFO threadInfo = { NULL, FALSE, 0 };
+    threadInfo.thread = CreateThread(NULL, 0, GameThread, (LPVOID) & threadInfo, 0, &(threadInfo.threadId));
 
     //Comandos
-    TCHAR teste[250];
-    _tscanf_s("%s", teste, 250);
 
-    // Quando o jogo acaba, o servidor é libertado para um novo poder ser aberto
+    int err = getCommands(&threadInfo);
+
+    // Quando o jogo acaba
+    // Verifica se a Thread já está fechada
+    
+    if (threadInfo.thread) WaitForSingleObject(threadInfo.thread, 5000);
+
+    // O mutex é libertado para um novo servidor poder ser aberto
 
     ReleaseMutex(mut);
     CloseHandle(mut);
 
-    return 0;
+    return err;
 }

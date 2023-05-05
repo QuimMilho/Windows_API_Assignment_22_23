@@ -13,7 +13,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     HANDLE WINAPI handle;
     LPCTSTR pView;
 
-//-----------------------Unicode----------------------
+    //-----------------------Unicode----------------------
 #ifdef UNICODE 
     if (_setmode(_fileno(stdin), _O_WTEXT) == -1) {
         _tprintf(_T("Failed to set input mode.\n"));
@@ -24,7 +24,7 @@ int _tmain(int argc, TCHAR* argv[]) {
         return 1;
     }
 #endif
-//-----------------------/Unicode---------------------
+    //-----------------------/Unicode---------------------
 
     printf("|====================| Operador |====================|\n");
 
@@ -73,12 +73,12 @@ int _tmain(int argc, TCHAR* argv[]) {
             UnmapViewOfFile(pView);
 
             CloseHandle(handle);
-    
+
        -> Criar MP
-            
+
             HANDLE WINAPI handle;
             LPCTSTR pView;
-            
+
             handle = CreateFileMapping(
                 INVALID_HANDLE_VALUE,       //  Não queremos nenhum ficheiro físico
                 NULL,
@@ -145,7 +145,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     //5 – Fecha o handle
     //    CloseHandle()
 
-    /* Tem de passar para o servidor    
+    /* Tem de passar para o servidor
     while (fgets(comString, sizeof(comString), stdin) == 0) {
 
         printf("\nComando Inválido... Comandos Disponíveis(<> -> Obrigatório, [] -> Opcional):\n    stop <tempo em s>: Parar o movimento dos carros durante um determinado período de tempo(especificado em segundos).\n    obstaculo <linha>[coluna]: Inserir obstáculos nas faixas de rodagem que são intransponíveis pelos carros e pelos sapos.\n    inverte <linha>: Inverter o sentido da marcha de determinada faixa de rodagem.\nInsira o comando: ");
@@ -170,8 +170,6 @@ int _tmain(int argc, TCHAR* argv[]) {
     //     DWORD dwMaximumSizeLow, // (mais significativo e menos significativo)
     //     LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
     //);
-
-
 
     return 0;
 }

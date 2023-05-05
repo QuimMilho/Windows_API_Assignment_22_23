@@ -17,17 +17,38 @@
 // Definitions
 
 // Loop do jogo
-int mainLoop();
+int mainLoop(BOOL running);
+
+// Cria os registry
+int createOptions();
+
+// Carrega as definições
+
+int loadOptions(GAME_SETTINGS * gameSettings) {
+
+}
+
+int createOptions(GAME_SETTINGS* gameSettings) {
+
+}
+
+int setOptions(GAME_SETTINGS* gameSettings, int k) {
+
+}
 
 // Game Thread
 
 DWORD WINAPI GameThread(LPVOID lpParam) {
-	mainLoop();
+	THREADINFO* threadInfo = (THREADINFO*)lpParam;
+	threadInfo->running = TRUE;
+	mainLoop(&(threadInfo->running));
+	_tprintf_s(_T("Thread terminado!"));
+	return 0;
 }
 
 // Loop do jogo
 
-int mainLoop() {
+int mainLoop(BOOL* running) {
 
 	// Frequência do relógio do computador
 	LARGE_INTEGER frequency;
@@ -49,7 +70,7 @@ int mainLoop() {
 	_tprintf(_T("Game loop started!\n"));
 
 	// Game loop
-	while (ticks < TICKRATE * 100) {
+	while (*running) {
 		//Busca do tempo atual
 		QueryPerformanceCounter(&now);
 
@@ -63,6 +84,7 @@ int mainLoop() {
 		}
 
 		// Cálculo do tempo entre o ultimo print e o tempo atual
+		/*
 		eleapsed_time = floor((now.QuadPart - lastPrint.QuadPart) / (double)frequency.QuadPart * PRECISION);
 		// Uma vez por segundo são impressas as tickrates
 		if (eleapsed_time > PRECISION) {
@@ -70,6 +92,7 @@ int mainLoop() {
 			_tprintf(_T("%d %d\n"), ticks, ticks - lastPrinted);
 			lastPrinted = ticks;
 		}
+		*/
 	}
 	return 0;
 }
