@@ -83,7 +83,7 @@ int mainLoop(BOOL* running) {
 			ticks++;
 		}
 
-		// Cálculo do tempo entre o ultimo print e o tempo atual
+		// Cálculo do tempo entre o ultimo print e o tempo atual (Imprime 1 vez por segundo)
 		/*
 		eleapsed_time = floor((now.QuadPart - lastPrint.QuadPart) / (double)frequency.QuadPart * PRECISION);
 		// Uma vez por segundo são impressas as tickrates
