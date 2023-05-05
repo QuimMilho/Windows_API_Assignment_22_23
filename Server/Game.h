@@ -3,6 +3,8 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <Windows.h>
+
 // Tickrate do jogo
 #define TICKRATE 10
 
