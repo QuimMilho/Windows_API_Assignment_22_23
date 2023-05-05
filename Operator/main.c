@@ -161,15 +161,5 @@ int _tmain(int argc, TCHAR* argv[]) {
     printf("arg2: %s", arg2);
     */
 
-    // Criar o objeto FileMapping usando o handle anterior
-    //HANDLE WINAPI CreateFileMapping (
-    //     HANDLE hFile, // Ficheiro a usar
-    //     LPSECURITY_ATTRIBUTES lpAttributes,
-    //     DWORD flProtect, // flags para: escrita/leitura/execu��o
-    //     DWORD dwMaximumSizeHigh, // Tamanho dado em duas DWORDS
-    //     DWORD dwMaximumSizeLow, // (mais significativo e menos significativo)
-    //     LPCTSTR lpName // Nome a dar ao recurso (fich. mapeado)
-    //);
-
     return 0;
 }
