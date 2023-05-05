@@ -42,7 +42,7 @@ DWORD WINAPI GameThread(LPVOID lpParam) {
 	THREADINFO* threadInfo = (THREADINFO*)lpParam;
 	threadInfo->running = TRUE;
 	mainLoop(&(threadInfo->running));
-	_tprintf_s(_T("Thread terminado!"));
+	_tprintf_s(_T("Thread terminado!\n"));
 	return 0;
 }
 

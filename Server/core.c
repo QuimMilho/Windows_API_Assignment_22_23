@@ -6,6 +6,7 @@
 
 #include "Handler.h"
 #include "Commands.h"
+#include "MemoryDLL.h"
 
 #define MAX 256
 
@@ -23,6 +24,8 @@ int _tmain(int argc, TCHAR* argv[]) {
         return 1;
     }
 #endif
+
+    _tprintf_s(_T("%d\n"), totalSize());
 
     // Verificação se programa está a correr ou não
 
