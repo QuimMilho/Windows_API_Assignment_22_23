@@ -43,7 +43,9 @@ int _tmain(int argc, TCHAR* argv[]) {
     // Carrega as definições
 
     GAME_SETTINGS gs = {0, 0};
-    int res = loadOptions(&gs);
+    int err = loadOptions(&gs);
+
+    if (err) createOptions(&gs);
 
     // Loop do jogo
 
@@ -52,7 +54,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     //Comandos
 
-    int err = getCommands(&threadInfo, &gs);
+    err = getCommands(&threadInfo, &gs);
 
     // Quando o jogo acaba
     // Verifica se a Thread já está fechada

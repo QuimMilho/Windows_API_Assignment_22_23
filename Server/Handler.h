@@ -5,13 +5,11 @@
 #include <Windows.h>
 
 // Defines de caminhos do Registry
-
 #define KEY_PATH _T("Software\\Jogo")
 #define VELOCITY_KEY _T("velocidade")
 #define LANE_KEY _T("faixas")
 
 // Defines de defaults
-
 #define DEFAULT_SPEED 10
 #define DEFAULT_LANES 8
 

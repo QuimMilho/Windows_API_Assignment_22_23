@@ -16,7 +16,7 @@
 // Cria as chaves da registry
 int createOptions(GAME_SETTINGS* gameSettings) {
 
-	HKEY hKey;
+	HKEY hKey, hKeyVel, hKeyLane;
 	LONG createStatus;
 
     // Criar a chave do jogo em HKEY_CURRENT_USER\Software
@@ -31,21 +31,24 @@ int createOptions(GAME_SETTINGS* gameSettings) {
 
     // Velocidade -> Sub-chave de Jogo
     createStatus = RegCreateKeyEx(hKey, VELOCITY_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
-        NULL, &hKey, NULL);
+        NULL, &hKeyVel, NULL);
 
     if (createStatus != ERROR_SUCCESS) {
         _tprintf_s(_T("Erro a criar sub-chave '%s'. Código de Erro : % ld\n"), VELOCITY_KEY, createStatus);
         RegCloseKey(hKey);
+        RegCloseKey(hKeyVel);
         return 1;
     }
 
     // Faixas -> Sub-chave de Jogo
     createStatus = RegCreateKeyEx(hKey, LANE_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
-        NULL, &hKey, NULL);
+        NULL, &hKeyLane, NULL);
 
     if (createStatus != ERROR_SUCCESS) {
         _tprintf_s(_T("Erro a criar sub-chave '%s'. Código de Erro : % ld\n"), LANE_KEY, createStatus);
         RegCloseKey(hKey);
+        RegCloseKey(hKeyLane);
+        RegCloseKey(hKeyVel);
         return 1;
     }
 
@@ -56,6 +59,8 @@ int createOptions(GAME_SETTINGS* gameSettings) {
 
     // Fechar a parent key Jogo com o seu handler hkey
     RegCloseKey(hKey);
+    RegCloseKey(hKeyLane);
+    RegCloseKey(hKeyVel);
 
     return 0;
 }
@@ -67,20 +72,17 @@ int loadOptions(GAME_SETTINGS * gameSettings) {
     LONG openStatus;
     DWORD valueType;
 
-    // Tipo de dados das sub-keys -> Valores Inteiros
-    DWORD   dataSize = sizeof(DWORD),
-
     // Abre a parent key Jogo
     openStatus = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, KEY_READ, &hKey);
 
     if (openStatus != ERROR_SUCCESS) {
-        _tprintf_s(_T("Failed to open registry key. Error code: %ld\n"), openStatus);
+        _tprintf_s(_T("Erro ao abrir chave do Registry. Código de Erro: %ld\n"), openStatus);
         return 1;
     }
 
     // Obtém o valor da velocidade -> vVelocidade
     openStatus = RegGetValue(hKey, NULL, VELOCITY_KEY, RRF_RT_REG_DWORD, &valueType,
-        &(gameSettings->init_speed), &dataSize);
+        &(gameSettings->init_speed), sizeof(DWORD));
 
     if (openStatus != ERROR_SUCCESS) {
         _tprintf_s(_T("Erro ao aceder ao valor da sub-chave '%s'. Código de Erro: %ld\n"), VELOCITY_KEY, openStatus);
@@ -90,7 +92,7 @@ int loadOptions(GAME_SETTINGS * gameSettings) {
 
     // Obtém o valor das faixas -> nFaixas
     openStatus = RegGetValue(hKey, NULL, LANE_KEY, RRF_RT_REG_DWORD, &valueType, 
-        &(gameSettings->lanes), &dataSize);
+        &(gameSettings->lanes), sizeof(DWORD));
 
     if (openStatus != ERROR_SUCCESS) {
         _tprintf_s(_T("Erro ao aceder ao valor da sub-chave '%s'. Código de Erro: %ld\n"), LANE_KEY, openStatus);
@@ -111,20 +113,19 @@ int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, TCHAR * option, DWORD v
     BOOL keyAlreadyOpened = TRUE;
 
     // Caso receba uma key que ainda não esteja aberta
-    if (hKey == NULL) {
+    if (*hKey == NULL) {
         keyAlreadyOpened = FALSE;
         // Abrir Key
         LONG openStatus;
-        openStatus = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, KEY_READ, &hKey);
+        openStatus = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, KEY_READ, hKey);
         if (openStatus != ERROR_SUCCESS) {
-            _tprintf_s(_T("Failed to open registry key. Error code: %ld\n"), openStatus);
+            _tprintf_s(_T("Erro ao abrir chave do Registry. Código de Erro: %ld\n"), openStatus);
             return 1;
         }
     }
 
     // Atribuir à sub-chave "velocidade" o valor vVelocidade
-    setValueStatus = RegSetValueEx(hKey, option, 0, REG_DWORD,
-        (const BYTE*)&value, sizeof(DWORD));
+    setValueStatus = RegSetValueEx(*hKey, option, 0, REG_DWORD, (const BYTE*)&value, sizeof(DWORD));
 
     if (setValueStatus != ERROR_SUCCESS) {
         _tprintf_s(_T("Erro ao atribuir valor à sub-chave '%s'. Código de Erro: %ld\n"), option, setValueStatus);
@@ -164,7 +165,7 @@ int mainLoop(BOOL* running) {
 
 	// Definição das váriáveis e do tempo entre cada tick
 	// Delta é o tempo entre cada tick (1 segundo dividido pelo numero de ticks)
-	double eleapsed_time, delta = PRECISION / (double) TICKRATE;
+	double elapsed_time, delta = PRECISION / (double) TICKRATE;
 	int ticks = 0, lastPrinted = 0;
 
 	// Log do servidor a começar
@@ -177,10 +178,10 @@ int mainLoop(BOOL* running) {
 		QueryPerformanceCounter(&now);
 
 		// Cálculo do tempo entre o ultimo tick e o tempo atual
-		eleapsed_time = floor((now.QuadPart - last.QuadPart) / (double)frequency.QuadPart * PRECISION);
+		elapsed_time = floor((now.QuadPart - last.QuadPart) / (double)frequency.QuadPart * PRECISION);
 
 		// É realizado um tick a cada "delta" tempo.
-		if (eleapsed_time >= delta) {
+		if (elapsed_time >= delta) {
 			last = now;
 			tick();
 			ticks++;
