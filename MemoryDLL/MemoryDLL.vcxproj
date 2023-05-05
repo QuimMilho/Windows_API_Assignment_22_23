@@ -132,6 +132,7 @@
     <ClCompile Include="MemoryDLL.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Items.h" />
     <ClInclude Include="MemoryDLL.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
