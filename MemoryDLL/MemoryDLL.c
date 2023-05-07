@@ -43,7 +43,7 @@ int mapGameSharedFile(HANDLE hFile, LPVOID * lpMapAddress) {
 // Transforma a memória partilhada em elementos organizados
 
 int saveStructures(LPVOID address, JOGO * jogo) {
-
+	return 0;
 }
 
 int toStructures(LPVOID address, JOGO* jogo) {

@@ -32,7 +32,7 @@ DWORD clear() {
 	return charsWritten;
 }
 
-int printTab(CHAR_INFO* tab, int nLanes) {
+int printTab(CHAR_INFO* tab, int * nLanes) {
 	// Pede instancia da consola
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (console == NULL) {
@@ -60,15 +60,15 @@ int printTab(CHAR_INFO* tab, int nLanes) {
 // Maping:
 // int n Sapos - Sapos (1 ou 2) - int level - int nFaixas - int nCarrosF1 - CarrosF1 - int nCarrosF2 - CarrosF2 - ... 
 //		- int nObstaculos - Obstaculos
-int getTab(CHAR_INFO * tab, LPVOID tabInfo, int * nLanes, int * level) {
+int getTab(CHAR_INFO* tab, JOGO* jogo) {
 	// Define os caracteres para os default
-	for (int i = 0; i < ((*nLanes) + 2) * 20; i++) {
+	for (int i = 0; i < ((jogo->nLanes) + 2) * 20; i++) {
 		if (i < 20) {
 			// BACKGROUND COLOR BLUE, FOREGROUND COLOR WHITE
 			tab[i].Attributes = BACKGROUND_BLUE | FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN;
 			_tsetCharInfoChar(&tab[i], _T(' '));
 		}
-		else if (i >= ((*nLanes) + 1) * 20) {
+		else if (i >= ((jogo->nLanes) + 1) * 20) {
 			// BACKGROUND COLOR BLUE, FOREGROUND COLOR WHITE
 			tab[i].Attributes = BACKGROUND_BLUE;
 			_tsetCharInfoChar(&tab[i], _T(' '));

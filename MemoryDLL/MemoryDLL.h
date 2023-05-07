@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+#include "Items.h"
+
 #ifdef DLL_EXPORTS
 #define DLL_API __declspec(dllexport)
 #else
