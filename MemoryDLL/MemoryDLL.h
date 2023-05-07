@@ -16,6 +16,12 @@ DLL_API int openGameFile(HANDLE* hFile);
 
 DLL_API int mapGameSharedFile(HANDLE hFile, LPVOID* lpMapAddress);
 
+DLL_API int saveStructures(LPVOID address, JOGO* jogo);
+
+DLL_API int toStructures(LPVOID address, JOGO* jogo);
+
+DLL_API int destroyGame(JOGO* jogo);
+
 DLL_API int createCommandFile(HANDLE* hFile);
 
 DLL_API int openCommandFile(HANDLE* hFile);
