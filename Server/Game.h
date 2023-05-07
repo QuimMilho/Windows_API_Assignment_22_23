@@ -1,11 +1,8 @@
 #pragma once
 
-#ifndef GAME_H
-#define GAME_H
-
 #include <Windows.h>
 
-// Tickrate do jogo
+// Tickrate do jogo (Max 80)
 #define TICKRATE 10
 
 // Definições do jogo
@@ -22,5 +19,3 @@ int mainLoop(BOOL* running);
 
 // Game Thread
 DWORD WINAPI GameThread(LPVOID lpParam);
-
-#endif //GAME_H

@@ -1,5 +1,6 @@
 #include "Handler.h"
 #include "Game.h"
+#include "Items.h"
 
 #include <time.h>
 #include <tchar.h>
@@ -141,10 +142,12 @@ int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, TCHAR * option, DWORD v
 
 // Game Thread
 DWORD WINAPI GameThread(LPVOID lpParam) {
-
 	THREADINFO* threadInfo = (THREADINFO*)lpParam;
-	threadInfo->running = TRUE;
-	mainLoop(&(threadInfo->running));
+	int err = mainLoop(&(threadInfo->running));
+    if (err) {
+        _tprintf_s(_T("Ocorreu um erro ao começar o main loop!\n"));
+        return 1;
+    }
 	_tprintf_s(_T("Thread terminado!\n"));
 	return 0;
 }
@@ -168,8 +171,15 @@ int mainLoop(BOOL* running) {
 	double elapsed_time, delta = PRECISION / (double) TICKRATE;
 	int ticks = 0, lastPrinted = 0;
 
-	// Log do servidor a começar
-	_tprintf(_T("Game loop started!\n"));
+    HANDLE serverTickEvent = CreateEvent(NULL, TRUE, FALSE, SERVER_TICK_EVENT);
+
+    if (serverTickEvent == NULL) {
+        _tprintf_s(_T("O evento %s não foi criado! Código de Erro: %d\n"), SERVER_TICK_EVENT, GetLastError());
+        return 1;
+    }
+
+    // Define o server como running!
+    *running = TRUE;
 
 	// Game loop
 	while (*running) {
@@ -183,8 +193,16 @@ int mainLoop(BOOL* running) {
 		// É realizado um tick a cada "delta" tempo.
 		if (elapsed_time >= delta) {
 			last = now;
+
+            // Game tick
 			tick();
 			ticks++;
+
+            // Informa os operadores que devem atualizar
+            SetEvent(serverTickEvent);
+            // Espera 5ms para dar reset ao evento
+            Sleep(1);
+            ResetEvent(serverTickEvent);
 		}
 
 		// Cálculo do tempo entre o ultimo print e o tempo atual (Imprime 1 vez por segundo)
@@ -198,6 +216,8 @@ int mainLoop(BOOL* running) {
 		}
 		*/
 	}
+
+    CloseHandle(serverTickEvent);
 
 	return 0;
 }
