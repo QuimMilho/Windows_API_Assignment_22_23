@@ -98,7 +98,7 @@ int getTab(CHAR_INFO* tab, JOGO* jogo) {
 
 	// Define os caracteres dos sapos
 	if (jogo->nSapos == 2) {
-		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->sapos[0].x, jogo->sapos[0].y)], _T('1'));
+		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->sapos[0].x, jogo->sapos[0].y)], );
 		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->sapos[1].x, jogo->sapos[1].y)], _T('2'));
 	}
 	else {

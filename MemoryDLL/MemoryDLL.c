@@ -9,6 +9,8 @@
 #define SHARED_COMMAND_MEMORY _T("ServerSapoCommands")
 #define SHARED_COMMAND_TOTAL_BYTES 104
 
+// Tamanho máximo do jogo
+
 int totalSize() {
 	int k = sizeof(int) + sizeof(SAPO) * 2 + sizeof(int) * 10 + sizeof(CARRO) * 64 + 
 		sizeof(int) + sizeof(OBSTACULO) * MAX_OBSTACULOS;
@@ -23,7 +25,8 @@ int totalSize() {
 //
 
 int createGameFile(HANDLE * hFile) {
-	(*hFile) = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, SHARED_SERVER_TOTAL_BYTES, SHARED_SERVER_MEMORY);
+	(*hFile) = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, SHARED_SERVER_TOTAL_BYTES, 
+		SHARED_SERVER_MEMORY);
 	if (*hFile == NULL) return 1;
 	return 0;
 }

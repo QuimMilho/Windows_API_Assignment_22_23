@@ -169,6 +169,7 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
         return 1;
     }
 
+    // Mapeia a memória partilhada
     LPVOID address;
     err = mapGameSharedFile(file, &address, FILE_MAP_ALL_ACCESS);
 
@@ -180,6 +181,7 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
     // Define o server como running!
     *running = TRUE;
 
+    // Cria o jogo
     JOGO jogo;
 
     err = createGame(&jogo, 2, gs);
@@ -235,6 +237,8 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
     destroyGame(&jogo);
 
     CloseHandle(serverTickEvent);
+
+    closeSharedFile(&file, &address);
 
 	return 0;
 }
