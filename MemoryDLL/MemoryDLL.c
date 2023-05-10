@@ -34,8 +34,8 @@ int openGameFile(HANDLE* hFile) {
 	return 0;
 }
 
-int mapGameSharedFile(HANDLE hFile, LPVOID * lpMapAddress) {
-	(*lpMapAddress) = MapViewOfFile(hFile, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+int mapGameSharedFile(HANDLE hFile, LPVOID * lpMapAddress, DWORD permissions) {
+	(*lpMapAddress) = MapViewOfFile(hFile, permissions, 0, 0, 0);
 	if (*lpMapAddress == NULL) return 1;
 	return 0;
 }
@@ -43,6 +43,55 @@ int mapGameSharedFile(HANDLE hFile, LPVOID * lpMapAddress) {
 // Transforma a memória partilhada em elementos organizados
 
 int saveStructures(LPVOID address, JOGO * jogo) {
+	if (address == NULL) return 1;
+
+	// Pos no buffer
+	int bufPos = 0;
+	DWORD32* buffer = (DWORD32*)address;
+
+	// n de sapos
+	buffer[bufPos++] = jogo->nSapos;
+
+	// Define o primeiro sapo
+	buffer[bufPos++] = jogo->sapos[0].x;
+	buffer[bufPos++] = jogo->sapos[0].y;
+	buffer[bufPos++] = jogo->sapos[0].lastMoved;
+
+	// Define o segundo sapo
+	if (jogo->nSapos == 2) {
+		buffer[bufPos++] = jogo->sapos[1].x;
+		buffer[bufPos++] = jogo->sapos[1].y;
+		buffer[bufPos++] = jogo->sapos[1].lastMoved;
+	}
+
+	// n do nível e de faixas
+	buffer[bufPos++] = jogo->level;
+	buffer[bufPos++] = jogo->nLanes;
+
+	// Variável de apoio
+	int totalCarros = 0;
+
+	//Percorre as faixas e adiciona os carros à memória partilhada.
+	for (int i = 0; i < jogo->nLanes; i++) {
+		// Vai buscar o numero de carros na faixa i
+		buffer[bufPos++] = jogo->nCarros[i];
+
+		// Para os novos carros nesta faixa são atribuidos os novos valores.
+		for (int h = 0; h < jogo->nCarros[i]; h++) {
+			buffer[bufPos++] = jogo->carros[totalCarros].y;
+			buffer[bufPos++] = jogo->carros[totalCarros].x;
+			buffer[bufPos++] = jogo->carros[totalCarros++].vel;
+		}
+	}
+	// n de obstaculos
+	buffer[bufPos++] = jogo->nObstaculos;
+
+	// Atribui os valores dos obstáculos
+	for (int i = 0; i < jogo->nObstaculos; i++) {
+		buffer[bufPos++] = jogo->obstaculos[i].x;
+		buffer[bufPos++] = jogo->obstaculos[i].y;
+	}
+
 	return 0;
 }
 
@@ -90,7 +139,7 @@ int toStructures(LPVOID address, JOGO* jogo) {
 	// Variáveis úteis para os carros
 	int posCarros = 0, totalCarros = 0;
 
-	//Percorre as faixas e alloca a mamória para os carros, adicionando os carros dessa faixa.
+	//Percorre as faixas e alloca a memória para os carros, adicionando os carros dessa faixa.
 	for (int i = 0; i < jogo->nLanes; i++) {
 
 		// Vai buscar o numero de carros na faixa i e adiciona ao total de carros
@@ -102,22 +151,24 @@ int toStructures(LPVOID address, JOGO* jogo) {
 
 		// Alocada memória para os novos carros
 		temp = realloc(jogo->carros, sizeof(CARRO) * totalCarros);
-		if (temp == NULL) {
+		if (temp == NULL && totalCarros != 0) {
 			_tprintf_s(_T("Ocorreu um erro ao alocar a memória para os carros no índice %d.\n"), i);
 			destroyGame(jogo);
 			return 1;
 		}
 
-		// Libertado o antigo ponteiro dos carros (possivelmente redondante) 
-		// e atribuido o novo ponteiro
-		free(jogo->carros);
-		jogo->carros = temp;
+		if (totalCarros != 0) {
+			// Libertado o antigo ponteiro dos carros (possivelmente redondante) 
+			// e atribuido o novo ponteiro
+			free(jogo->carros);
+			jogo->carros = temp;
 
-		// Para os novos carros nesta faixa são atribuidos os novos valores.
-		for (int h = 0; h < jogo->nCarros[i]; h++) {
-			jogo->carros[posCarros].y = (int)buffer[bufPos++];
-			jogo->carros[posCarros].x = (float)buffer[bufPos++];
-			jogo->carros[posCarros++].vel = (float)buffer[bufPos++];
+			// Para os novos carros nesta faixa são atribuidos os novos valores.
+			for (int h = 0; h < jogo->nCarros[i]; h++) {
+				jogo->carros[posCarros].y = (int)buffer[bufPos++];
+				jogo->carros[posCarros].x = (float)buffer[bufPos++];
+				jogo->carros[posCarros++].vel = (float)buffer[bufPos++];
+			}
 		}
 	}
 
