@@ -20,7 +20,7 @@ DWORD WINAPI BoardThread(LPVOID lpParam) {
 
 	// Mapia a memória partilhada
 	LPVOID gameInfo;
-	err = mapGameSharedFile(hfile, &gameInfo);
+	err = mapGameSharedFile(hfile, &gameInfo, FILE_MAP_READ);
 	if (err != 0) {
 		_tprintf_s(_T("Erro ao mapear a memória partilhada."));
 		return 1;
@@ -28,7 +28,18 @@ DWORD WINAPI BoardThread(LPVOID lpParam) {
 
 	// Evento
 	HANDLE hEvent = OpenEvent(EVENT_ALL_ACCESS, FALSE, SERVER_TICK_EVENT);
+	if (hEvent == NULL) {
+		_tprintf_s(_T("Ocorreu um erro ao abrir o evento! Código do erro: %d"), GetLastError());
+		return 1;
+	}
+
 	DWORD dwEventResult;
+
+	threadInfo->running = TRUE;
+
+	setCursorPosition(15, 20);
+
+	clear();
 
 	// Thread running
 	while (threadInfo->running) {
@@ -56,7 +67,7 @@ DWORD WINAPI BoardThread(LPVOID lpParam) {
 		}
 
 		getTab(tab, &jogo);
-		printTab(tab, &(jogo.nLanes));
+		printTab(tab, jogo.nLanes);
 
 		free(tab);
 		destroyGame(&jogo);
@@ -67,7 +78,9 @@ DWORD WINAPI BoardThread(LPVOID lpParam) {
 	}
 
 	// Desliga a memória partilhada
-	closeSharedFile(hfile, gameInfo);
+	closeSharedFile(&hfile, &gameInfo);
+
+	_tprintf_s(_T("Thread terminada!\n"));
 
 	return 0;
 }

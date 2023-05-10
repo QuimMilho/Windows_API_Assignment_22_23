@@ -14,3 +14,5 @@ int printTab(CHAR_INFO * tab, int * nLanes);
 DWORD clear();
 
 int getTab(CHAR_INFO* tab, JOGO * jogo);
+
+int setCursorPosition(int x, int y);

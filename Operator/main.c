@@ -28,5 +28,19 @@ int _tmain(int argc, TCHAR* argv[]) {
     THREADINFO threadInfo = { NULL, FALSE, 0 };
     threadInfo.thread = CreateThread(NULL, 0, BoardThread, (LPVOID) & threadInfo, 0, &threadInfo.threadId);
 
+    TCHAR cmd[MAX];
+
+    do {
+        _tprintf_s(_T(">"));
+        fflush(stdin);
+        _fgetts(cmd, MAX, stdin);
+        cmd[_tcslen(cmd) - 1] = '\0';
+
+    } while (_tcscmp(cmd, _T("sair")) != 0);
+
+    threadInfo.running = FALSE;
+
+    WaitForSingleObject(threadInfo.thread, 5000);
+
     return 0;
 }
