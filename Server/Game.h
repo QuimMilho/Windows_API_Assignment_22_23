@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+#include "Items.h"
+
 // Tickrate do jogo (Max 80)
 #define TICKRATE 10
 
@@ -12,10 +14,7 @@ typedef struct GameSettings {
 } GAME_SETTINGS;
 
 // Função de tick do jogo
-int tick();
+int tick(JOGO * jogo);
 
-// Loop do Jogo
-int mainLoop(BOOL* running);
-
-// Game Thread
-DWORD WINAPI GameThread(LPVOID lpParam);
+// Criar jogo
+int createGame(JOGO* jogo, int nSapos, GAME_SETTINGS* gs);

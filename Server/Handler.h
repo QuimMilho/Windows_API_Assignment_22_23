@@ -18,9 +18,22 @@ typedef struct ThreadInfo {
 	HANDLE thread;		// Handle da Thread
 	BOOL running;		// If thread must be running or not
 	DWORD threadId;		// Thread ID
+	GAME_SETTINGS* gs;
 } THREADINFO;
 
 // REGISTRY
 int createOptions(GAME_SETTINGS* gameSettings);
 int loadOptions(GAME_SETTINGS* gameSettings);
 int setOptions(HKEY hkey, GAME_SETTINGS* gameSettings, int k);
+
+// Game Thread
+DWORD WINAPI GameThread(LPVOID lpParam);
+
+// Loop do Jogo
+int mainLoop(BOOL* running, GAME_SETTINGS* gs);
+
+// Random numbers
+int initRandom();
+
+int genRand(int a);
+int genRandBt(int a, int b);

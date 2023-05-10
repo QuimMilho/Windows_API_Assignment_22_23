@@ -1,6 +1,7 @@
 #include "Handler.h"
 #include "Game.h"
 #include "Items.h"
+#include "MemoryDLL.h"
 
 #include <time.h>
 #include <tchar.h>
@@ -30,38 +31,16 @@ int createOptions(GAME_SETTINGS* gameSettings) {
         return 1;
     }
 
-    // Velocidade -> Sub-chave de Jogo
-    createStatus = RegCreateKeyEx(hKey, VELOCITY_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
-        NULL, &hKeyVel, NULL);
-
-    if (createStatus != ERROR_SUCCESS) {
-        _tprintf_s(_T("Erro a criar sub-chave '%s'. Código de Erro : % ld\n"), VELOCITY_KEY, createStatus);
-        RegCloseKey(hKey);
-        RegCloseKey(hKeyVel);
-        return 1;
-    }
-
-    // Faixas -> Sub-chave de Jogo
-    createStatus = RegCreateKeyEx(hKey, LANE_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
-        NULL, &hKeyLane, NULL);
-
-    if (createStatus != ERROR_SUCCESS) {
-        _tprintf_s(_T("Erro a criar sub-chave '%s'. Código de Erro : % ld\n"), LANE_KEY, createStatus);
-        RegCloseKey(hKey);
-        RegCloseKey(hKeyLane);
-        RegCloseKey(hKeyVel);
-        return 1;
-    }
-
     // Chamar a função setOptions com os valores pretendidos
 
-    setOptions(hKey, gameSettings, VELOCITY_KEY, DEFAULT_SPEED);
-    setOptions(hKey, gameSettings, LANE_KEY, DEFAULT_LANES);
+    setOptions(&hKey, gameSettings, VELOCITY_KEY, DEFAULT_SPEED);
+    setOptions(&hKey, gameSettings, LANE_KEY, DEFAULT_LANES);
 
     // Fechar a parent key Jogo com o seu handler hkey
     RegCloseKey(hKey);
-    RegCloseKey(hKeyLane);
-    RegCloseKey(hKeyVel);
+
+    gameSettings->init_speed = DEFAULT_SPEED;
+    gameSettings->lanes = DEFAULT_LANES;
 
     return 0;
 }
@@ -71,7 +50,7 @@ int loadOptions(GAME_SETTINGS * gameSettings) {
 
     HKEY hKey;
     LONG openStatus;
-    DWORD valueType;
+    DWORD temp = sizeof(DWORD);
 
     // Abre a parent key Jogo
     openStatus = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, KEY_READ, &hKey);
@@ -82,8 +61,8 @@ int loadOptions(GAME_SETTINGS * gameSettings) {
     }
 
     // Obtém o valor da velocidade -> vVelocidade
-    openStatus = RegGetValue(hKey, NULL, VELOCITY_KEY, RRF_RT_REG_DWORD, &valueType,
-        &(gameSettings->init_speed), sizeof(DWORD));
+    openStatus = RegGetValue(hKey, NULL, VELOCITY_KEY, RRF_RT_DWORD, NULL,
+        &(gameSettings->init_speed), &temp);
 
     if (openStatus != ERROR_SUCCESS) {
         _tprintf_s(_T("Erro ao aceder ao valor da sub-chave '%s'. Código de Erro: %ld\n"), VELOCITY_KEY, openStatus);
@@ -92,8 +71,8 @@ int loadOptions(GAME_SETTINGS * gameSettings) {
     }
 
     // Obtém o valor das faixas -> nFaixas
-    openStatus = RegGetValue(hKey, NULL, LANE_KEY, RRF_RT_REG_DWORD, &valueType, 
-        &(gameSettings->lanes), sizeof(DWORD));
+    openStatus = RegGetValue(hKey, NULL, LANE_KEY, RRF_RT_DWORD, NULL,
+        &(gameSettings->lanes), &temp);
 
     if (openStatus != ERROR_SUCCESS) {
         _tprintf_s(_T("Erro ao aceder ao valor da sub-chave '%s'. Código de Erro: %ld\n"), LANE_KEY, openStatus);
@@ -108,7 +87,7 @@ int loadOptions(GAME_SETTINGS * gameSettings) {
 }
 
 // Atribui valores ás sub-chaves
-int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, TCHAR * option, DWORD value) {
+int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, LPSTR option, DWORD value) {
 
     LONG setValueStatus;
     BOOL keyAlreadyOpened = TRUE;
@@ -118,7 +97,7 @@ int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, TCHAR * option, DWORD v
         keyAlreadyOpened = FALSE;
         // Abrir Key
         LONG openStatus;
-        openStatus = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, KEY_READ, hKey);
+        openStatus = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_PATH, 0, KEY_READ, *hKey);
         if (openStatus != ERROR_SUCCESS) {
             _tprintf_s(_T("Erro ao abrir chave do Registry. Código de Erro: %ld\n"), openStatus);
             return 1;
@@ -143,7 +122,7 @@ int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, TCHAR * option, DWORD v
 // Game Thread
 DWORD WINAPI GameThread(LPVOID lpParam) {
 	THREADINFO* threadInfo = (THREADINFO*)lpParam;
-	int err = mainLoop(&(threadInfo->running));
+    int err = mainLoop(&(threadInfo->running), threadInfo->gs);
     if (err) {
         _tprintf_s(_T("Ocorreu um erro ao começar o main loop!\n"));
         return 1;
@@ -153,7 +132,9 @@ DWORD WINAPI GameThread(LPVOID lpParam) {
 }
 
 // Loop do jogo
-int mainLoop(BOOL* running) {
+int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
+
+    initRandom();
 
 	// Frequência do relógio do computador
 	LARGE_INTEGER frequency;
@@ -171,6 +152,7 @@ int mainLoop(BOOL* running) {
 	double elapsed_time, delta = PRECISION / (double) TICKRATE;
 	int ticks = 0, lastPrinted = 0;
 
+    // Server tick event
     HANDLE serverTickEvent = CreateEvent(NULL, TRUE, FALSE, SERVER_TICK_EVENT);
 
     if (serverTickEvent == NULL) {
@@ -178,8 +160,34 @@ int mainLoop(BOOL* running) {
         return 1;
     }
 
+    // Cria a memória partilhada
+    HANDLE file;
+    int err = createGameFile(&file);
+
+    if (err) {
+        _tprintf_s(_T("Erro ao criar ficheiro da memória partilhada\n"));
+        return 1;
+    }
+
+    LPVOID address;
+    err = mapGameSharedFile(file, &address, FILE_MAP_ALL_ACCESS);
+
+    if (err) {
+        _tprintf_s(_T("Erro ao mapear a memória partilhada\n"));
+        return 1;
+    }
+
     // Define o server como running!
     *running = TRUE;
+
+    JOGO jogo;
+
+    err = createGame(&jogo, 2, gs);
+
+    if (err) {
+        _tprintf_s(_T("Erro ao criar instância inicial do jogo!\n"));
+        return 1;
+    }
 
 	// Game loop
 	while (*running) {
@@ -195,8 +203,15 @@ int mainLoop(BOOL* running) {
 			last = now;
 
             // Game tick
-			tick();
+			err = tick(&jogo);
 			ticks++;
+
+            if (err) {
+                _tprintf_s(_T("Ocorreu um erro ao dar tick no jogo!\n"));
+                break;
+            }
+
+            saveStructures(address, &jogo);
 
             // Informa os operadores que devem atualizar
             SetEvent(serverTickEvent);
@@ -217,7 +232,23 @@ int mainLoop(BOOL* running) {
 		*/
 	}
 
+    destroyGame(&jogo);
+
     CloseHandle(serverTickEvent);
 
 	return 0;
+}
+
+int initRandom() {
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+    srand(now.QuadPart);
+}
+
+int genRand(int a) {
+    return rand() % a;
+}
+
+int genRandBt(int a, int b) {
+    return genRand(b - a) + a;
 }

@@ -25,18 +25,20 @@ int _tmain(int argc, TCHAR* argv[]) {
     }
 #endif
 
-    _tprintf_s(_T("%d\n"), totalSize());
+    // Inicializa uma seed para random numbers
+
+    initRandom();
 
     // Verificação se programa está a correr ou não
 
     HANDLE mut = CreateMutex(NULL, FALSE, _T("SapoServerMutex"));
 
     if (mut == NULL) {
-        _tprintf(_T("Error creating Mutex: %d"), GetLastError());
+        _tprintf(_T("Error creating Mutex: %d\n"), GetLastError());
         return 2;
     }
     else if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        _tprintf(_T("Server is already running!"));
+        _tprintf(_T("Server is already running!\n"));
         return 0;
     }
 
@@ -46,10 +48,11 @@ int _tmain(int argc, TCHAR* argv[]) {
     int err = loadOptions(&gs);
 
     if (err) createOptions(&gs);
+    else _tprintf_s(_T("As definições foram carregadas com sucesso!\n"));
 
     // Loop do jogo
 
-    THREADINFO threadInfo = { NULL, FALSE, 0 };
+    THREADINFO threadInfo = { NULL, FALSE, 0, &gs };
     threadInfo.thread = CreateThread(NULL, 0, GameThread, (LPVOID) & threadInfo, 0, &(threadInfo.threadId));
 
     //Comandos
