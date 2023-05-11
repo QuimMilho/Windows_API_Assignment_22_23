@@ -6,7 +6,7 @@
 
 // Tickrate do jogo (Max 80)
 #define TICKRATE 10
-#define RANDOM_TICK_SPEED 4
+#define RANDOM_TICK_SPEED TICKRATE / 2
 
 #define PROB_GERAR_CARRO 10
 
