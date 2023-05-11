@@ -9,7 +9,7 @@
 #define SHARED_COMMAND_MEMORY _T("ServerSapoCommands")
 #define SHARED_COMMAND_TOTAL_BYTES 104
 
-// Tamanho máximo do jogo
+// Tamanho mï¿½ximo do jogo
 
 int totalSize() {
 	int k = sizeof(int) + sizeof(SAPO) * 2 + sizeof(int) * 10 + sizeof(CARRO) * 64 + 
@@ -20,7 +20,7 @@ int totalSize() {
 // Game Files
 // 
 // Maping:
-// int n Sapos - Sapos (1 ou 2) - int level - int nFaixas - int nCarrosF1 - CarrosF1 - int nCarrosF2 - CarrosF2 - ... 
+// int n Sapos - Sapos (1 ou 2) - int level - int nFaixas - int nCarrosF1 - CarrosF1 - int nCarrosF2 - CarrosF2 - ...
 //		- int nObstaculos - Obstaculos
 //
 
@@ -43,7 +43,7 @@ int mapGameSharedFile(HANDLE hFile, LPVOID * lpMapAddress, DWORD permissions) {
 	return 0;
 }
 
-// Transforma a memória partilhada em elementos organizados
+// Transforma a memï¿½ria partilhada em elementos organizados
 
 int saveStructures(LPVOID address, JOGO * jogo) {
 	if (address == NULL) return 1;
@@ -67,14 +67,14 @@ int saveStructures(LPVOID address, JOGO * jogo) {
 		buffer[bufPos++] = jogo->sapos[1].lastMoved;
 	}
 
-	// n do nível e de faixas
+	// n do nï¿½vel e de faixas
 	buffer[bufPos++] = jogo->level;
 	buffer[bufPos++] = jogo->nLanes;
 
 	// Total de carros
 	buffer[bufPos++] = jogo->totalDeCarros;
 
-	//Percorre as faixas e adiciona os carros à memória partilhada.
+	//Percorre as faixas e adiciona os carros ï¿½ memï¿½ria partilhada.
 	for (int i = 0; i < jogo->nLanes; i++) {
 		// Vai buscar o numero de carros na faixa i
 		buffer[bufPos++] = jogo->direcao[i];
@@ -88,7 +88,7 @@ int saveStructures(LPVOID address, JOGO * jogo) {
 	// n de obstaculos
 	buffer[bufPos++] = jogo->nObstaculos;
 
-	// Atribui os valores dos obstáculos
+	// Atribui os valores dos obstï¿½culos
 	for (int i = 0; i < jogo->nObstaculos; i++) {
 		buffer[bufPos++] = jogo->obstaculos[i].x;
 		buffer[bufPos++] = jogo->obstaculos[i].y;
@@ -107,10 +107,10 @@ int toStructures(LPVOID address, JOGO* jogo) {
 	// n de sapos
 	jogo->nSapos = (int)buffer[bufPos++];
 
-	// Aloca os sapos na memória
+	// Aloca os sapos na memï¿½ria
 	jogo->sapos = malloc(sizeof(SAPO) * jogo->nSapos);
 	if (jogo->sapos == NULL) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a memória para os sapos.\n"));
+		_tprintf_s(_T("Ocorreu um erro ao alocar a memï¿½ria para os sapos.\n"));
 		return 1;
 	}
 
@@ -126,32 +126,32 @@ int toStructures(LPVOID address, JOGO* jogo) {
 		jogo->sapos[1].lastMoved = (int)buffer[bufPos++];
 	}
 
-	// n do nível e de faixas
+	// n do nï¿½vel e de faixas
 	jogo->level = (int)buffer[bufPos++];
 	jogo->nLanes = (int)buffer[bufPos++];
 
 	// Total de carros
 	jogo->totalDeCarros = buffer[bufPos++];
 
-	// Aloca uma array com nLanes elementos que são o número de carros por faixa.
+	// Aloca uma array com nLanes elementos que sï¿½o o nï¿½mero de carros por faixa.
 	jogo->direcao = malloc(sizeof(int) * jogo->nLanes);
 	if (jogo->direcao == NULL) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a memória para o número de carros.\n"));
+		_tprintf_s(_T("Ocorreu um erro ao alocar a memï¿½ria para o nï¿½mero de carros.\n"));
 		destroyGame(jogo);
 		return 1;
 	}
 
-	//Percorre as faixas e alloca a memória para os carros, adicionando os carros dessa faixa.
+	//Percorre as faixas e alloca a memï¿½ria para os carros, adicionando os carros dessa faixa.
 	for (int i = 0; i < jogo->nLanes; i++) {
 
-		// Vai buscar a direção da faixa
+		// Vai buscar a direï¿½ï¿½o da faixa
 		jogo->direcao[i] = (int)buffer[bufPos++];
 	}
 
-	// Alocada memória para os carros
+	// Alocada memï¿½ria para os carros
 	jogo->carros = malloc(sizeof(CARRO) * jogo->totalDeCarros);
 	if (jogo->carros == NULL && jogo->totalDeCarros != 0) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a memória para os carros.\n"));
+		_tprintf_s(_T("Ocorreu um erro ao alocar a memï¿½ria para os carros.\n"));
 		destroyGame(jogo);
 		return 1;
 	}
@@ -167,15 +167,15 @@ int toStructures(LPVOID address, JOGO* jogo) {
 	// n de obstaculos
 	jogo->nObstaculos = (int)buffer[bufPos++];
 
-	// Aloca os obstáculos na memória
+	// Aloca os obstï¿½culos na memï¿½ria
 	jogo->obstaculos = malloc(sizeof(OBSTACULO) * jogo->nObstaculos);
 	if (jogo->obstaculos == NULL && jogo->obstaculos != 0) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a memória para os obstáculos.\n"));
+		_tprintf_s(_T("Ocorreu um erro ao alocar a memï¿½ria para os obstï¿½culos.\n"));
 		destroyGame(jogo);
 		return 1;
 	}
 
-	// Atribui os valores dos obstáculos
+	// Atribui os valores dos obstï¿½culos
 	for (int i = 0; i < jogo->nObstaculos; i++) {
 		jogo->obstaculos[i].x = (int)buffer[bufPos++];
 		jogo->obstaculos[i].y = (int)buffer[bufPos++];
@@ -219,4 +219,83 @@ int closeSharedFile(HANDLE * hFile, LPVOID* lpMapAddress) {
 	UnmapViewOfFile(*lpMapAddress);
 	CloseHandle(*hFile);
 	return 0;
+}
+
+
+
+// -----------------------------------------------	BUFFER CIRCULAR -----------------------------------------------
+
+// Tenho dï¿½vidas no bufferSize e nalgumas aritmï¿½ticas nomeadamente os /sizeof(char) ou *sizeof(char) uma vez que estamos a usar unicode
+
+// Implementaï¿½ï¿½o da funï¿½ï¿½o CreateCircularBuffer (bufferSize -> em bytes)
+CircularBuffer* CreateCircularBuffer(int bufferSize) {
+
+	CircularBuffer* circBuffer = malloc(sizeof(CircularBuffer));
+
+	if (circBuffer == NULL) {
+		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao criar o ponteiro.\n"));
+		return 1;
+	}
+
+	circBuffer->buffer = malloc(bufferSize);
+	circBuffer->bufferSize = bufferSize;
+	circBuffer->head = 0;
+	circBuffer->tail = 0;
+
+	if (circBuffer->buffer == NULL) {
+		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao alocar memï¿½ria para o buffer.\n"));
+		free(circBuffer);
+		return 1;
+	}
+
+	return circBuffer;
+}
+
+// Apagar o buffer circular
+int DestroyCircularBuffer(CircularBuffer* circBuffer) {
+
+	free(circBuffer->buffer);
+	free(circBuffer);
+
+	if (circBuffer->buffer != NULL || circBuffer != NULL) {
+		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao libertar memï¿½ria.\n"));
+		return 1;
+	}
+
+	return 0;
+}
+
+// Adiciona o elemento data ao buffer circular
+int PushToCircularBuffer(CircularBuffer* circBuffer, const char* data) {
+
+	// Verificar se o buffer estï¿½ cheio
+	unsigned int nextIndex = (circBuffer->head + 1) % circBuffer->bufferSize;
+	if (nextIndex == circBuffer->tail) {
+		// Buffer estï¿½ cheio, nï¿½o podemos inserir mais elementos
+		return 0;
+	}
+
+	// Inserir o elemento no buffer
+	memcpy(circBuffer->buffer + circBuffer->head, data, sizeof(char));
+	circBuffer->head = (circBuffer->head + 1) % circBuffer->bufferSize;
+
+	return 1;
+}
+
+// Remove um elemento do buffer e coloca esse elemento em data
+int PopFromCircularBuffer(CircularBuffer* circBuffer, char* data, int dataSize) {
+
+	// Nï¿½o podemos fazer apenas +1  porque ï¿½ circular se chegarmos ao fim volta a 0
+	unsigned int nextIndex = (circBuffer->head + 1) % circBuffer->bufferSize;
+
+	if (nextIndex == circBuffer->tail) {
+		// Buffer estï¿½ cheio, voltar ao inï¿½cio
+		circBuffer->tail = (circBuffer->tail + 1) % circBuffer->bufferSize;
+	}
+
+	// Inserir o elemento no prï¿½ximo ï¿½ndice disponï¿½vel
+	strcpy(circBuffer->buffer + circBuffer->head * sizeof(char), data);
+	circBuffer->head = nextIndex;
+
+	return 1;
 }

@@ -19,3 +19,5 @@ int getCommands(THREADINFO * threadInfo, GAME_SETTINGS* gs);
 
 // Processa e executa os comandos
 int process(TCHAR* cmdStr, int origin, THREADINFO* threadInfo, GAME_SETTINGS* gs);
+
+int execute(TCHAR* cmdName, Args* args, int nargs, int origin, THREADINFO* threadInfo, GAME_SETTINGS* gs);
