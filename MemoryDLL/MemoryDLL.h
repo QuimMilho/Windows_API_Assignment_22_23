@@ -14,6 +14,8 @@
 #define SHARED_SERVER_TOTAL_BYTES 1096
 
 #define SHARED_COMMAND_MEMORY _T("ServerSapoCommands")
+
+// Dependendo do número de comandos que queremos usar no buffer circular
 #define SHARED_COMMAND_TOTAL_BYTES 104
 
 DLL_API int totalSize();
@@ -39,15 +41,18 @@ DLL_API int mapCommandSharedFile(HANDLE hFile, LPVOID* lpMapAddress);
 DLL_API int closeSharedFile(HANDLE* hFile, LPVOID* lpMapAddress);
 
 //==| BUFFER CIRCULAR |==
+
 // Definição da estrutura do buffer circular
 typedef struct CircularBuffer {
 
-	CircularBuffer* circBuffer;
-	char commands[SHARED_COMMAND_TOTAL_BYTES];
+	char* buffer;
+	int bufferSize;
+	unsigned int head;  // próximo a inserir
+	unsigned int tail;  // próximo a remover
 
 } CircularBuffer;
 
 CircularBuffer* CreateCircularBuffer(int bufferSize);
-void DestroyCircularBuffer(CircularBuffer* circBuffer);
+int DestroyCircularBuffer(CircularBuffer* circBuffer);
 int PushToCircularBuffer(CircularBuffer* circBuffer, const char* data);
 int PopFromCircularBuffer(CircularBuffer* circBuffer, char* data, int dataSize);

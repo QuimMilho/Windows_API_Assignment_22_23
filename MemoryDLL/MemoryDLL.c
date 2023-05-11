@@ -227,30 +227,77 @@ int closeSharedFile(HANDLE * hFile, LPVOID* lpMapAddress) {
 
 // -----------------------------------------------	BUFFER CIRCULAR -----------------------------------------------
 
-// Implementação da função CreateCircularBuffer
+// Tenho dúvidas no bufferSize e nalgumas aritméticas nomeadamente os /sizeof(char) ou *sizeof(char) uma vez que estamos a usar unicode
+
+// Implementação da função CreateCircularBuffer (bufferSize -> em bytes)
 CircularBuffer* CreateCircularBuffer(int bufferSize) {
 
-	
+	CircularBuffer* circBuffer = malloc(sizeof(CircularBuffer));
 
+	if (circBuffer == NULL) {
+		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao criar o ponteiro.\n"));
+		return 1;
+	}
+
+	circBuffer->buffer = malloc(bufferSize);
+	circBuffer->bufferSize = bufferSize;
+	circBuffer->head = 0;
+	circBuffer->tail = 0;
+
+	if (circBuffer->buffer == NULL) {
+		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao alocar memória para o buffer.\n"));
+		free(circBuffer);
+		return 1;
+	}
+
+	return circBuffer;
 }
 
 // Apagar o buffer circular
-void DestroyCircularBuffer(CircularBuffer* circBuffer) {
+int DestroyCircularBuffer(CircularBuffer* circBuffer) {
 
-	
+	free(circBuffer->buffer);
+	free(circBuffer);
 
+	if (circBuffer->buffer != NULL || circBuffer != NULL) {
+		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao libertar memória.\n"));
+		return 1;
+	}
+
+	return 0;
 }
 
-// Adiciona um elemento ao buffer circular
+// Adiciona o elemento data ao buffer circular
 int PushToCircularBuffer(CircularBuffer* circBuffer, const char* data) {
 
+	// Verificar se o buffer está cheio
+	unsigned int nextIndex = (circBuffer->head + 1) % circBuffer->bufferSize;
+	if (nextIndex == circBuffer->tail) {
+		// Buffer está cheio, não podemos inserir mais elementos
+		return 0;
+	}
 
+	// Inserir o elemento no buffer
+	memcpy(circBuffer->buffer + circBuffer->head, data, sizeof(char));
+	circBuffer->head = (circBuffer->head + 1) % circBuffer->bufferSize;
 
+	return 1;
 }
 
-// Remove um elemento do buffer circular
+// Remove um elemento do buffer e coloca esse elemento em data
 int PopFromCircularBuffer(CircularBuffer* circBuffer, char* data, int dataSize) {
 
+	// Não podemos fazer apenas +1  porque é circular se chegarmos ao fim volta a 0
+	unsigned int nextIndex = (circBuffer->head + 1) % circBuffer->bufferSize;
 
+	if (nextIndex == circBuffer->tail) {
+		// Buffer está cheio, voltar ao início
+		circBuffer->tail = (circBuffer->tail + 1) % circBuffer->bufferSize;
+	}
 
+	// Inserir o elemento no próximo índice disponível
+	strcpy(circBuffer->buffer + circBuffer->head * sizeof(char), data);
+	circBuffer->head = nextIndex;
+
+	return 1;
 }
