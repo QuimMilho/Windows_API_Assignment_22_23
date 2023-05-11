@@ -46,7 +46,8 @@ DLL_API int closeSharedFile(HANDLE* hFile, LPVOID* lpMapAddress);
 typedef struct CircularBuffer {
 
 	char* buffer;
-	int bufferSize;
+	int bufferSize;		// Tamanho total do buffer
+	int nComandos;
 	unsigned int head;  // próximo a inserir
 	unsigned int tail;  // próximo a remover
 
