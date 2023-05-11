@@ -14,7 +14,6 @@ typedef struct arguments { TCHAR arg[MAX]; } Args;
 // Reencaminha os comandos para onde podem ser executados
 // Comandos de server: pausa, retoma, recomeça, sair, define
 // Comandos de server + operator: stop, obstáculo, inverte
-int execute(TCHAR* cmdName, Args * args, int nargs, int origin, THREADINFO* threadInfo, GAME_SETTINGS* gs);
 
 //Funcoes 
 
