@@ -24,7 +24,7 @@ typedef struct ThreadInfo {
 // REGISTRY
 int createOptions(GAME_SETTINGS* gameSettings);
 int loadOptions(GAME_SETTINGS* gameSettings);
-int setOptions(HKEY hkey, GAME_SETTINGS* gameSettings, int k);
+int setOptions(HKEY* hKey, GAME_SETTINGS* gameSettings, LPSTR option, DWORD value);
 
 // Game Thread
 DWORD WINAPI GameThread(LPVOID lpParam);

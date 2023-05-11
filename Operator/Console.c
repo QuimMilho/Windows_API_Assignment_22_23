@@ -47,7 +47,7 @@ int setCursorPosition(int x, int y) {
 	return 0;
 }
 
-int printTab(CHAR_INFO* tab, int * nLanes) {
+int printTab(CHAR_INFO* tab, int nLanes) {
 	// Pede instancia da consola
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (console == NULL) {
@@ -64,7 +64,7 @@ int printTab(CHAR_INFO* tab, int * nLanes) {
 	COORD pos = { 0, 0 }, size = { 20, nLanes + 2 };
 
 	// Tamanho do retângulo a imprimir
-	SMALL_RECT rect = { pos.X, pos.Y, pos.X + 19, pos.Y + 9 };
+	SMALL_RECT rect = { pos.X, pos.Y, pos.X + 19, pos.Y + nLanes + 1 };
 
 	// Imprime na consola sem usar o cursor.
 	WriteConsoleOutput(console, tab, size, pos, &rect);
@@ -98,11 +98,20 @@ int getTab(CHAR_INFO* tab, JOGO* jogo) {
 
 	// Define os caracteres dos sapos
 	if (jogo->nSapos == 2) {
-		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->sapos[0].x, jogo->sapos[0].y)], );
+		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->sapos[0].x, jogo->sapos[0].y)], _T('1'));
 		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->sapos[1].x, jogo->sapos[1].y)], _T('2'));
 	}
 	else {
 		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->sapos[0].x, jogo->sapos[0].y)], _T('S'));
+	}
+
+	for (int i = 0; i < jogo->totalDeCarros; i++) {
+		if (jogo->carros[i].x != 20)
+		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->carros[i].x, jogo->carros[i].y)], CHAR_CARRO);
+	}
+
+	for (int i = 0; i < jogo->nObstaculos; i++) {
+		_tsetCharInfoChar(&tab[getPos(totalLanes, jogo->obstaculos[i].x, jogo->obstaculos[i].y)], CHAR_CARRO);
 	}
 }
 

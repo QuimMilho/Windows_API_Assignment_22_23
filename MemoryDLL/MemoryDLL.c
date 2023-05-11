@@ -4,7 +4,7 @@
 #include <tchar.h>
 
 #define SHARED_SERVER_MEMORY _T("ServerSapoShared")
-#define SHARED_SERVER_TOTAL_BYTES 1096
+#define SHARED_SERVER_TOTAL_BYTES 1100
 
 #define SHARED_COMMAND_MEMORY _T("ServerSapoCommands")
 #define SHARED_COMMAND_TOTAL_BYTES 104
@@ -71,20 +71,19 @@ int saveStructures(LPVOID address, JOGO * jogo) {
 	buffer[bufPos++] = jogo->level;
 	buffer[bufPos++] = jogo->nLanes;
 
-	// Variável de apoio
-	int totalCarros = 0;
+	// Total de carros
+	buffer[bufPos++] = jogo->totalDeCarros;
 
 	//Percorre as faixas e adiciona os carros à memória partilhada.
 	for (int i = 0; i < jogo->nLanes; i++) {
 		// Vai buscar o numero de carros na faixa i
-		buffer[bufPos++] = jogo->nCarros[i];
+		buffer[bufPos++] = jogo->direcao[i];
+	}
 
-		// Para os novos carros nesta faixa são atribuidos os novos valores.
-		for (int h = 0; h < jogo->nCarros[i]; h++) {
-			buffer[bufPos++] = jogo->carros[totalCarros].y;
-			buffer[bufPos++] = jogo->carros[totalCarros].x;
-			buffer[bufPos++] = jogo->carros[totalCarros++].vel;
-		}
+	for (int i = 0; i < jogo->totalDeCarros; i++) {
+		buffer[bufPos++] = jogo->carros[i].x;
+		buffer[bufPos++] = jogo->carros[i].y;
+		buffer[bufPos++] = jogo->carros[i].vel;
 	}
 	// n de obstaculos
 	buffer[bufPos++] = jogo->nObstaculos;
@@ -131,48 +130,38 @@ int toStructures(LPVOID address, JOGO* jogo) {
 	jogo->level = (int)buffer[bufPos++];
 	jogo->nLanes = (int)buffer[bufPos++];
 
+	// Total de carros
+	jogo->totalDeCarros = buffer[bufPos++];
+
 	// Aloca uma array com nLanes elementos que são o número de carros por faixa.
-	jogo->nCarros = malloc(sizeof(int) * jogo->nLanes);
-	if (jogo->nCarros == NULL) {
+	jogo->direcao = malloc(sizeof(int) * jogo->nLanes);
+	if (jogo->direcao == NULL) {
 		_tprintf_s(_T("Ocorreu um erro ao alocar a memória para o número de carros.\n"));
 		destroyGame(jogo);
 		return 1;
 	}
 
-	// Variáveis úteis para os carros
-	int posCarros = 0, totalCarros = 0;
-
 	//Percorre as faixas e alloca a memória para os carros, adicionando os carros dessa faixa.
 	for (int i = 0; i < jogo->nLanes; i++) {
 
-		// Vai buscar o numero de carros na faixa i e adiciona ao total de carros
-		jogo->nCarros[i] = (int)buffer[bufPos++];
-		totalCarros += jogo->nCarros[i];
+		// Vai buscar a direção da faixa
+		jogo->direcao[i] = (int)buffer[bufPos++];
+	}
 
-		// Variável temporária para não haver memory leaks
-		CARRO* temp = NULL;
+	// Alocada memória para os carros
+	jogo->carros = malloc(sizeof(CARRO) * jogo->totalDeCarros);
+	if (jogo->carros == NULL && jogo->totalDeCarros != 0) {
+		_tprintf_s(_T("Ocorreu um erro ao alocar a memória para os carros.\n"));
+		destroyGame(jogo);
+		return 1;
+	}
 
-		// Alocada memória para os novos carros
-		temp = realloc(jogo->carros, sizeof(CARRO) * totalCarros);
-		if (temp == NULL && totalCarros != 0) {
-			_tprintf_s(_T("Ocorreu um erro ao alocar a memória para os carros no índice %d.\n"), i);
-			destroyGame(jogo);
-			return 1;
-		}
+	// Percorre todos os carros e define  os seus valores
 
-		if (totalCarros != 0) {
-			// Libertado o antigo ponteiro dos carros (possivelmente redondante) 
-			// e atribuido o novo ponteiro
-			free(jogo->carros);
-			jogo->carros = temp;
-
-			// Para os novos carros nesta faixa são atribuidos os novos valores.
-			for (int h = 0; h < jogo->nCarros[i]; h++) {
-				jogo->carros[posCarros].y = (int)buffer[bufPos++];
-				jogo->carros[posCarros].x = (float)buffer[bufPos++];
-				jogo->carros[posCarros++].vel = (float)buffer[bufPos++];
-			}
-		}
+	for (int i = 0; i < jogo->totalDeCarros; i++) {
+		jogo->carros[i].x = (int)buffer[bufPos++];
+		jogo->carros[i].y = (float)buffer[bufPos++];
+		jogo->carros[i].vel = (float)buffer[bufPos++];
 	}
 
 	// n de obstaculos
@@ -180,7 +169,7 @@ int toStructures(LPVOID address, JOGO* jogo) {
 
 	// Aloca os obstáculos na memória
 	jogo->obstaculos = malloc(sizeof(OBSTACULO) * jogo->nObstaculos);
-	if (jogo->obstaculos == NULL) {
+	if (jogo->obstaculos == NULL && jogo->obstaculos != 0) {
 		_tprintf_s(_T("Ocorreu um erro ao alocar a memória para os obstáculos.\n"));
 		destroyGame(jogo);
 		return 1;
@@ -200,7 +189,7 @@ int destroyGame(JOGO* jogo) {
 	free(jogo->carros);
 	free(jogo->sapos);
 	free(jogo->obstaculos);
-	free(jogo->nCarros);
+	free(jogo->direcao);
 	return 0;
 }
 

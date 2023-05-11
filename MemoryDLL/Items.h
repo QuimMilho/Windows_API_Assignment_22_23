@@ -27,7 +27,8 @@ typedef struct Jogo {
 	SAPO* sapos;
 	int level;
 	int nLanes;
-	int* nCarros;
+	int totalDeCarros;
+	int * direcao;
 	CARRO* carros;
 	int nObstaculos;
 	OBSTACULO* obstaculos;

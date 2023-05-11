@@ -205,7 +205,7 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
 			last = now;
 
             // Game tick
-			err = tick(&jogo);
+			err = tick(&jogo, gs, ticks);
 			ticks++;
 
             if (err) {
