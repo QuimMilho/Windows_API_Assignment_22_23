@@ -3,12 +3,6 @@
 
 #include <tchar.h>
 
-#define SHARED_SERVER_MEMORY _T("ServerSapoShared")
-#define SHARED_SERVER_TOTAL_BYTES 1096
-
-#define SHARED_COMMAND_MEMORY _T("ServerSapoCommands")
-#define SHARED_COMMAND_TOTAL_BYTES 104
-
 int totalSize() {
 	int k = sizeof(int) + sizeof(SAPO) * 2 + sizeof(int) * 10 + sizeof(CARRO) * 64 + 
 		sizeof(int) + sizeof(OBSTACULO) * MAX_OBSTACULOS;
@@ -18,7 +12,7 @@ int totalSize() {
 // Game Files
 // 
 // Maping:
-// int n Sapos - Sapos (1 ou 2) - int level - int nFaixas - int nCarrosF1 - CarrosF1 - int nCarrosF2 - CarrosF2 - ... 
+// int n Sapos - Sapos (1 ou 2) - int level - int nFaixas - int nCarrosF1 - CarrosF1 - int nCarrosF2 - CarrosF2 - ...
 //		- int nObstaculos - Obstaculos
 //
 
@@ -227,4 +221,36 @@ int closeSharedFile(HANDLE * hFile, LPVOID* lpMapAddress) {
 	UnmapViewOfFile(*lpMapAddress);
 	CloseHandle(*hFile);
 	return 0;
+}
+
+
+
+// -----------------------------------------------	BUFFER CIRCULAR -----------------------------------------------
+
+// Implementação da função CreateCircularBuffer
+CircularBuffer* CreateCircularBuffer(int bufferSize) {
+
+	
+
+}
+
+// Apagar o buffer circular
+void DestroyCircularBuffer(CircularBuffer* circBuffer) {
+
+	
+
+}
+
+// Adiciona um elemento ao buffer circular
+int PushToCircularBuffer(CircularBuffer* circBuffer, const char* data) {
+
+
+
+}
+
+// Remove um elemento do buffer circular
+int PopFromCircularBuffer(CircularBuffer* circBuffer, char* data, int dataSize) {
+
+
+
 }
