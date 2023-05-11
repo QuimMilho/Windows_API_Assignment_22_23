@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <tchar.h>
 
 #include "Items.h"
 
@@ -11,12 +12,10 @@
 #endif
 
 #define SHARED_SERVER_MEMORY _T("ServerSapoShared")
-#define SHARED_SERVER_TOTAL_BYTES 1096
+#define SHARED_SERVER_TOTAL_BYTES 1100
 
 #define SHARED_COMMAND_MEMORY _T("ServerSapoCommands")
-
-// Dependendo do número de comandos que queremos usar no buffer circular
-#define SHARED_COMMAND_TOTAL_BYTES 104
+#define SHARED_COMMAND_BUFFER_CHARS 100
 
 DLL_API int totalSize();
 
@@ -40,20 +39,14 @@ DLL_API int mapCommandSharedFile(HANDLE hFile, LPVOID* lpMapAddress);
 
 DLL_API int closeSharedFile(HANDLE* hFile, LPVOID* lpMapAddress);
 
-//==| BUFFER CIRCULAR |==
+DLL_API int StartCircularBuffer(LPVOID address);
 
-// Definição da estrutura do buffer circular
-typedef struct CircularBuffer {
+DLL_API int WriteCircularBufferChar(LPVOID address, TCHAR* cmdStr);
 
-	char* buffer;
-	int bufferSize;		// Tamanho total do buffer
-	int nComandos;
-	unsigned int head;  // próximo a inserir
-	unsigned int tail;  // próximo a remover
+DLL_API int ReadCircularBufferChar(LPVOID address, TCHAR* cmdStr, int max);
 
-} CircularBuffer;
+DLL_API int WriteCircularBufferDWORD(LPVOID address, DWORD32 dword);
 
-CircularBuffer* CreateCircularBuffer(int bufferSize);
-int DestroyCircularBuffer(CircularBuffer* circBuffer);
-int PushToCircularBuffer(CircularBuffer* circBuffer, const char* data);
-int PopFromCircularBuffer(CircularBuffer* circBuffer, char* data, int dataSize);
+DLL_API int ReadCircularBufferDWORD(LPVOID address, DWORD32* dword);
+
+DLL_API int GetCommandErrorSTR(TCHAR* str, int size, int err);

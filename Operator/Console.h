@@ -11,6 +11,7 @@
 int printTab(CHAR_INFO * tab, int nLanes);
 
 DWORD clear();
+DWORD clearLine(int y);
 
 int getTab(CHAR_INFO* tab, JOGO * jogo);
 

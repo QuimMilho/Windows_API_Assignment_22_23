@@ -4,12 +4,15 @@
 
 #include "Commands.h"
 #include "Handler.h"
-
-#define MAX 250
+#include "MemoryDLL.h"
 
 // Definições
 
+#define MAX 250
+
 typedef struct arguments { TCHAR arg[MAX]; } Args;
+
+int execute(TCHAR* cmdName, Args* args, int nargs, int origin, THREADINFO* threadInfo);
 
 // Reencaminha os comandos para onde podem ser executados
 // Comandos de server: pausa, retoma, recomeça, sair, define
@@ -17,7 +20,7 @@ typedef struct arguments { TCHAR arg[MAX]; } Args;
 
 //Funcoes 
 
-int getCommands(THREADINFO * threadInfo, GAME_SETTINGS * gs) {
+int getCommands(THREADINFO * threadInfo) {
 	TCHAR cmd[MAX];
 	do {
 		_tprintf_s(_T(">"));
@@ -25,23 +28,16 @@ int getCommands(THREADINFO * threadInfo, GAME_SETTINGS * gs) {
 		_fgetts(cmd, MAX, stdin);
 		cmd[_tcslen(cmd) - 1] = '\0';
 		if (_tcslen(cmd) != 0) {
-			int err = process(cmd, SERVER, threadInfo, gs);
-			switch (err) {
-			case NO_EXIST:
-				_tprintf_s(_T("Esse comando não existe!\n"));
-				break;
-			case NO_ARGS:
-				_tprintf_s(_T("Não introduziste nenhum argumento!\n"));
-				break;
-			case NO_ENOUGH_ARGS:
-				_tprintf_s(_T("Introduziste um número inválido de argumentos!\n"));
-				break;
-			case INV_ARGS:
-				_tprintf_s(_T("Introduziste argumentos inválidos!\n"));
-				break;
-			case CMD_ERROR:
-				_tprintf_s(_T("Ocorreu um erro ao executar o comando!\n"));
-				break;
+			int err = process(cmd, SERVER, threadInfo);
+			if (err) {
+				TCHAR errSTR[100];
+				err = GetCommandErrorSTR(errSTR, 100, err);
+				if (err) {
+					_tprintf_s("Algo correu mal ao procurar o erro de um comando!\n");
+					threadInfo->running = FALSE;
+					break;
+				}
+				_tprintf_s(_T("%s\n"), errSTR);
 			}
 		}
 		else {
@@ -51,7 +47,7 @@ int getCommands(THREADINFO * threadInfo, GAME_SETTINGS * gs) {
 	return 0;
 }
 
-int process(TCHAR * cmdStr, int origin, THREADINFO * threadInfo, GAME_SETTINGS* gs) {
+int process(TCHAR * cmdStr, int origin, THREADINFO * threadInfo) {
 	// Nome do comando
 	TCHAR cmd[MAX] = _T("");
 	// N de argumentos
@@ -117,14 +113,14 @@ int process(TCHAR * cmdStr, int origin, THREADINFO * threadInfo, GAME_SETTINGS* 
 	}
 	
 	// Executa o comando
-	int err = execute(cmd, args, nArgs, origin, threadInfo, gs);
+	int err = execute(cmd, args, nArgs, origin, threadInfo);
 
 	// Liberta a memória
 	free(args);
 	return err;
 }
 
-int execute(TCHAR* cmdName, TCHAR* args, int nargs, int origin, THREADINFO* threadInfo, GAME_SETTINGS* gs) {
+int execute(TCHAR* cmdName, Args* args, int nargs, int origin, THREADINFO* threadInfo) {
 	switch (origin)
 	{
 	case SERVER:

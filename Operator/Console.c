@@ -34,6 +34,31 @@ DWORD clear() {
 	return charsWritten;
 }
 
+DWORD clearLine(int y) {
+	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (console == NULL) {
+		_tprintf_s(_T("Erro ao obter instância da consola."));
+		return 1;
+	}
+
+	// Informação sobre a consola
+	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+	GetConsoleScreenBufferInfo(console, &consoleInfo);
+
+	DWORD charsWritten;
+
+	FillConsoleOutputCharacter(console, _T(' '), consoleInfo.dwSize.X,
+		(COORD) {
+		0, y
+	}, & charsWritten);
+	FillConsoleOutputAttribute(console, consoleInfo.wAttributes, consoleInfo.dwSize.X,
+		(COORD) {
+		0, y
+	}, & charsWritten);
+
+	return charsWritten;
+}
+
 int setCursorPosition(int x, int y) {
 	// Pede instancia da consola
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);

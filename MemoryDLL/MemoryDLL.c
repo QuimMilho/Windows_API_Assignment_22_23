@@ -3,12 +3,6 @@
 
 #include <tchar.h>
 
-#define SHARED_SERVER_MEMORY _T("ServerSapoShared")
-#define SHARED_SERVER_TOTAL_BYTES 1100
-
-#define SHARED_COMMAND_MEMORY _T("ServerSapoCommands")
-#define SHARED_COMMAND_TOTAL_BYTES 104
-
 // Tamanho m�ximo do jogo
 
 int totalSize() {
@@ -196,13 +190,14 @@ int destroyGame(JOGO* jogo) {
 // Command Files
 
 int createCommandFile(HANDLE* hFile) {
-	(*hFile) = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, SHARED_COMMAND_TOTAL_BYTES, SHARED_SERVER_MEMORY);
+	(*hFile) = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0,  
+		sizeof(TCHAR) * SHARED_COMMAND_BUFFER_CHARS + sizeof(DWORD) * 2, SHARED_COMMAND_MEMORY);
 	if (*hFile == NULL) return 1;
 	return 0;
 }
 
 int openCommandFile(HANDLE* hFile) {
-	(*hFile) = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, SHARED_SERVER_MEMORY);
+	(*hFile) = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, SHARED_COMMAND_MEMORY);
 	if (*hFile == NULL) return 1;
 	return 0;
 }
@@ -221,81 +216,117 @@ int closeSharedFile(HANDLE * hFile, LPVOID* lpMapAddress) {
 	return 0;
 }
 
-
-
 // -----------------------------------------------	BUFFER CIRCULAR -----------------------------------------------
 
-// Tenho d�vidas no bufferSize e nalgumas aritm�ticas nomeadamente os /sizeof(char) ou *sizeof(char) uma vez que estamos a usar unicode
+// SHARED_COMMAND_BUFFER_BYTES Bytes + int in + int out
 
-// Implementa��o da fun��o CreateCircularBuffer (bufferSize -> em bytes)
-CircularBuffer* CreateCircularBuffer(int bufferSize) {
+int StartCircularBuffer(LPVOID address) {
 
-	CircularBuffer* circBuffer = malloc(sizeof(CircularBuffer));
+	DWORD32* buffer = (DWORD32*)address;
 
-	if (circBuffer == NULL) {
-		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao criar o ponteiro.\n"));
-		return 1;
+	for (int i = 0; i < SHARED_COMMAND_BUFFER_CHARS; i++) {
+		buffer[i] = 0;
 	}
 
-	circBuffer->buffer = malloc(bufferSize);
-	circBuffer->bufferSize = bufferSize;
-	circBuffer->head = 0;
-	circBuffer->tail = 0;
-
-	if (circBuffer->buffer == NULL) {
-		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao alocar mem�ria para o buffer.\n"));
-		free(circBuffer);
-		return 1;
-	}
-
-	return circBuffer;
-}
-
-// Apagar o buffer circular
-int DestroyCircularBuffer(CircularBuffer* circBuffer) {
-
-	free(circBuffer->buffer);
-	free(circBuffer);
-
-	if (circBuffer->buffer != NULL || circBuffer != NULL) {
-		_tprintf_s(_T("[Buffer Circular] Ocorreu um erro ao libertar mem�ria.\n"));
-		return 1;
-	}
+	buffer[SHARED_COMMAND_BUFFER_CHARS] = 0;
+	buffer[SHARED_COMMAND_BUFFER_CHARS + 1] = 0;
 
 	return 0;
 }
 
 // Adiciona o elemento data ao buffer circular
-int PushToCircularBuffer(CircularBuffer* circBuffer, const char* data) {
+int WriteCircularBufferChar(LPVOID address, TCHAR* cmdStr) {
 
-	// Verificar se o buffer est� cheio
-	unsigned int nextIndex = (circBuffer->head + 1) % circBuffer->bufferSize;
-	if (nextIndex == circBuffer->tail) {
-		// Buffer est� cheio, n�o podemos inserir mais elementos
-		return 0;
+	int size = _tcslen(cmdStr);
+
+	if (size > SHARED_COMMAND_BUFFER_CHARS) {
+		_tprintf_s(_T("A string de caracteres introduzida é demasiado grande!\n"));
+		return 1;
 	}
 
-	// Inserir o elemento no buffer
-	memcpy(circBuffer->buffer + circBuffer->head, data, sizeof(char));
-	circBuffer->head = (circBuffer->head + 1) % circBuffer->bufferSize;
+	DWORD32* buffer = (DWORD32*)address;
+	TCHAR* strBuf = (TCHAR*)address;
 
-	return 1;
+	int* in = &(buffer[SHARED_COMMAND_BUFFER_CHARS + 1]), * out = &(buffer[SHARED_COMMAND_BUFFER_CHARS + 2]);
+
+	*in = (*out + 1) % SHARED_COMMAND_BUFFER_CHARS;
+	*out = (*in + size) % SHARED_COMMAND_BUFFER_CHARS - 1;
+
+	for (int i = 0; i < size; i++) {
+		strBuf[((*in) + i) % SHARED_COMMAND_BUFFER_CHARS] = cmdStr[i];
+	}
+
+	return 0;
 }
 
-// Remove um elemento do buffer e coloca esse elemento em data
-int PopFromCircularBuffer(CircularBuffer* circBuffer, char* data, int dataSize) {
+int ReadCircularBufferChar(LPVOID address, TCHAR* cmdStr, int max) {
 
-	// N�o podemos fazer apenas +1  porque � circular se chegarmos ao fim volta a 0
-	unsigned int nextIndex = (circBuffer->head + 1) % circBuffer->bufferSize;
+	DWORD32* buffer = (DWORD32*)address;
+	TCHAR* strBuf = (TCHAR*)address;
 
-	if (nextIndex == circBuffer->tail) {
-		// Buffer est� cheio, voltar ao in�cio
-		circBuffer->tail = (circBuffer->tail + 1) % circBuffer->bufferSize;
+	int in = buffer[SHARED_COMMAND_BUFFER_CHARS + 1], out = buffer[SHARED_COMMAND_BUFFER_CHARS + 2];
+
+	int size = in < out ? out - in : SHARED_COMMAND_BUFFER_CHARS - in + out;
+	size++; // Correção do tamanho real
+
+	if (size + 1 > max) {
+		_tprintf_s(_T("A string introduzida não aguenta o tamanho escrito no buffer!\n"));
+		return 1;
 	}
 
-	// Inserir o elemento no pr�ximo �ndice dispon�vel
-	strcpy(circBuffer->buffer + circBuffer->head * sizeof(char), data);
-	circBuffer->head = nextIndex;
+	for (int i = 0; i < size; i++) {
+		cmdStr[i] = strBuf[(in + i) % SHARED_COMMAND_BUFFER_CHARS];
+	}
 
-	return 1;
+	cmdStr[size] = _T('\0');
+
+	return 0;
+}
+
+DLL_API int WriteCircularBufferDWORD(LPVOID address, DWORD32 dword) {
+	DWORD32* buffer = (DWORD32*)address;
+
+	int* in = &(buffer[SHARED_COMMAND_BUFFER_CHARS + 1]), * out = &(buffer[SHARED_COMMAND_BUFFER_CHARS + 2]);
+
+	*in = (*out + 1) % SHARED_COMMAND_BUFFER_CHARS;
+	*out = (*in);
+
+	buffer[*in] = dword;
+
+	return 0;
+}
+
+
+DLL_API int ReadCircularBufferDWORD(LPVOID address, DWORD32* dword) {
+	DWORD32* buffer = (DWORD32*)address;
+
+	int in = buffer[SHARED_COMMAND_BUFFER_CHARS + 1];
+
+	*dword = buffer[in];
+
+	return 0;
+}
+
+int GetCommandErrorSTR(TCHAR* str, int size, int err) {
+	int wrote = 0;
+	switch (err) {
+	case NO_EXIST:
+		wrote = _tcscpy_s(str, size, _T("Esse comando não existe!"));
+		break;
+	case NO_ARGS:
+		wrote = _tcscpy_s(str, size, _T("Não introduziste nenhum argumento!"));
+		break;
+	case NO_ENOUGH_ARGS:
+		wrote = _tcscpy_s(str, size, _T("Introduziste um número inválido de argumentos!"));
+		break;
+	case INV_ARGS:
+		wrote = _tcscpy_s(str, size, _T("Introduziste argumentos inválidos!"));
+		break;
+	case CMD_ERROR:
+		wrote = _tcscpy_s(str, size, _T("Ocorreu um erro ao executar o comando!"));
+		break;
+	default:
+		return 1;
+	}
+	return wrote;
 }

@@ -24,12 +24,18 @@
     <ClCompile Include="BoardHandler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OpCommands.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BoardHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -57,7 +57,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     //Comandos
 
-    err = getCommands(&threadInfo, &gs);
+    err = getCommands(&threadInfo);
 
     // Quando o jogo acaba
     // Verifica se a Thread já está fechada

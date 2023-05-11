@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "Items.h"
 #include "MemoryDLL.h"
+#include "Commands.h"
 
 #include <time.h>
 #include <tchar.h>
@@ -14,6 +15,9 @@
 #define PRECISION_MILLIS 1000
 
 #define PRECISION PRECISION_MICRO
+
+// Loop do Jogo
+int mainLoop(THREADINFO* ti);
 
 // Cria as chaves da registry
 int createOptions(GAME_SETTINGS* gameSettings) {
@@ -122,7 +126,7 @@ int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, LPSTR option, DWORD val
 // Game Thread
 DWORD WINAPI GameThread(LPVOID lpParam) {
 	THREADINFO* threadInfo = (THREADINFO*)lpParam;
-    int err = mainLoop(&(threadInfo->running), threadInfo->gs);
+    int err = mainLoop(threadInfo);
     if (err) {
         _tprintf_s(_T("Ocorreu um erro ao começar o main loop!\n"));
         return 1;
@@ -132,7 +136,7 @@ DWORD WINAPI GameThread(LPVOID lpParam) {
 }
 
 // Loop do jogo
-int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
+int mainLoop(THREADINFO* ti) {
 
     initRandom();
 
@@ -152,6 +156,8 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
 	double elapsed_time, delta = PRECISION / (double) TICKRATE;
 	int ticks = 0, lastPrinted = 0;
 
+    // ---------------------- Memória do jogo ----------------------
+
     // Server tick event
     HANDLE serverTickEvent = CreateEvent(NULL, TRUE, FALSE, SERVER_TICK_EVENT);
 
@@ -161,38 +167,91 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
     }
 
     // Cria a memória partilhada
-    HANDLE file;
-    int err = createGameFile(&file);
+    HANDLE gameFile;
+    int err = createGameFile(&gameFile);
 
     if (err) {
         _tprintf_s(_T("Erro ao criar ficheiro da memória partilhada\n"));
+        CloseHandle(serverTickEvent);
         return 1;
     }
 
     // Mapeia a memória partilhada
-    LPVOID address;
-    err = mapGameSharedFile(file, &address, FILE_MAP_ALL_ACCESS);
+    LPVOID gameAddress;
+    err = mapGameSharedFile(gameFile, &gameAddress, FILE_MAP_ALL_ACCESS);
 
     if (err) {
         _tprintf_s(_T("Erro ao mapear a memória partilhada\n"));
+        CloseHandle(gameFile);
+        CloseHandle(serverTickEvent);
         return 1;
     }
 
+    // ---------------------- Comandos operador ----------------------
+
+    HANDLE commandWriteEvent = CreateEvent(NULL, TRUE, FALSE, SERVER_COMMAND_WRITE);
+
+    if (commandWriteEvent == NULL) {
+        _tprintf_s(_T("O evento %s não foi criado! Código de Erro: %d\n"), SERVER_TICK_EVENT, GetLastError());
+        closeSharedFile(&gameFile, &gameAddress);
+        CloseHandle(serverTickEvent);
+        return 1;
+    }
+
+    HANDLE commandReadEvent = CreateEvent(NULL, FALSE, FALSE, SERVER_COMMAND_READ);
+
+    if (commandReadEvent == NULL) {
+        _tprintf_s(_T("O evento %s não foi criado! Código de Erro: %d\n"), SERVER_TICK_EVENT, GetLastError());
+        closeSharedFile(&gameFile, &gameAddress);
+        CloseHandle(serverTickEvent);
+        CloseHandle(commandWriteEvent);
+        return 1;
+    }
+
+    HANDLE cmdFile;
+
+    err = createCommandFile(&cmdFile);
+
+    if (err) {
+        _tprintf_s(_T("Erro ao criar ficheiro da memória partilhada dos comandos\n"));
+        closeSharedFile(&gameFile, &gameAddress);
+        CloseHandle(serverTickEvent);
+        CloseHandle(commandWriteEvent);
+        CloseHandle(commandReadEvent);
+        return 1;
+    }
+
+    // Mapeia a memória partilhada
+    LPVOID cmdAddress;
+    err = mapGameSharedFile(cmdFile, &cmdAddress, FILE_MAP_ALL_ACCESS);
+    if (err) {
+        _tprintf_s(_T("Erro ao mapear a memória partilhada dos comandos\n"));
+        closeSharedFile(&gameFile, &gameAddress);
+        CloseHandle(serverTickEvent);
+        CloseHandle(commandWriteEvent);
+        CloseHandle(commandReadEvent);
+        CloseHandle(cmdFile);
+        return 1;
+    }
+
+    StartCircularBuffer(cmdAddress);
+
     // Define o server como running!
-    *running = TRUE;
 
     // Cria o jogo
     JOGO jogo;
 
-    err = createGame(&jogo, 2, gs);
+    err = createGame(&jogo, 2, ti->gs);
 
     if (err) {
         _tprintf_s(_T("Erro ao criar instância inicial do jogo!\n"));
         return 1;
     }
 
+    ti->running = TRUE;
+
 	// Game loop
-	while (*running) {
+	while (ti->running) {
 
 		//Busca do tempo atual
 		QueryPerformanceCounter(&now);
@@ -204,8 +263,35 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
 		if (elapsed_time >= delta) {
 			last = now;
 
+            //Procura por comandos executados
+            DWORD t = WaitForSingleObject(commandWriteEvent, 0);
+
+            if (t == WAIT_OBJECT_0) {
+                TCHAR* temp = malloc(sizeof(TCHAR) * SHARED_COMMAND_BUFFER_CHARS);
+                if (temp == NULL) {
+                    _tprintf_s(_T("Ocorreu um erro ao allocar memória para o buffer de comandos!\n"));
+                    break;
+                }
+                err = ReadCircularBufferChar(cmdAddress, temp, SHARED_COMMAND_BUFFER_CHARS);
+                if (err) {
+                    _tprintf_s(_T("Ocorreu um erro ao ler o comando da memória partilhada!\n"));
+                    break;
+                }
+                err = process(temp, OPERATOR, ti);
+                WriteCircularBufferDWORD(cmdAddress, err);
+                SetEvent(commandReadEvent);
+                free(temp);
+                do {
+                    err = WaitForSingleObject(commandWriteEvent, 0);
+                } while (err == WAIT_TIMEOUT);
+            }
+            else if (t != WAIT_TIMEOUT) {
+                _tprintf_s(_T("Ocorreu um erro ao esperar por um evento!\n"));
+                break;
+            }
+
             // Game tick
-			err = tick(&jogo, gs, ticks);
+			err = tick(&jogo, ti->gs, ticks);
 			ticks++;
 
             if (err) {
@@ -213,7 +299,7 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
                 break;
             }
 
-            saveStructures(address, &jogo);
+            saveStructures(gameAddress, &jogo);
 
             // Informa os operadores que devem atualizar
             SetEvent(serverTickEvent);
@@ -238,7 +324,11 @@ int mainLoop(BOOL* running, GAME_SETTINGS * gs) {
 
     CloseHandle(serverTickEvent);
 
-    closeSharedFile(&file, &address);
+    closeSharedFile(&gameFile, &gameAddress);
+    closeSharedFile(&cmdFile, &cmdAddress);
+
+    CloseHandle(serverTickEvent);
+    CloseHandle(commandWriteEvent);
 
 	return 0;
 }

@@ -29,9 +29,6 @@ int setOptions(HKEY* hKey, GAME_SETTINGS* gameSettings, LPSTR option, DWORD valu
 // Game Thread
 DWORD WINAPI GameThread(LPVOID lpParam);
 
-// Loop do Jogo
-int mainLoop(BOOL* running, GAME_SETTINGS* gs);
-
 // Random numbers
 int initRandom();
 

@@ -4,10 +4,9 @@
 #include <io.h>
 #include <stdio.h>
 
-#include "Console.h"
 #include "BoardHandler.h"
-
-#define MAX 256
+#include "MemoryDLL.h"
+#include "OpCommands.h"
 
 int _tmain(int argc, TCHAR* argv[]) {
 
@@ -26,17 +25,12 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     // Creates the board thread
     THREADINFO threadInfo = { NULL, FALSE, 0 };
-    threadInfo.thread = CreateThread(NULL, 0, BoardThread, (LPVOID) & threadInfo, 0, &threadInfo.threadId);
+    threadInfo.thread = CreateThread(NULL, 0, BoardThread, (LPVOID)&threadInfo, 0, &threadInfo.threadId);
 
-    TCHAR cmd[MAX];
-
-    do {
-        _tprintf_s(_T(">"));
-        fflush(stdin);
-        _fgetts(cmd, MAX, stdin);
-        cmd[_tcslen(cmd) - 1] = '\0';
-
-    } while (_tcscmp(cmd, _T("sair")) != 0);
+    int err = cmdLoop();
+    if (err) {
+        _tprintf_s(_T("Ocorreu um erro ao ler os comandos!\n"));
+    }
 
     threadInfo.running = FALSE;
 
