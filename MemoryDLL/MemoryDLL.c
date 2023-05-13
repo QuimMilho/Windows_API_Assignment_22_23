@@ -224,6 +224,7 @@ int StartCircularBuffer(LPVOID address) {
 
 	DWORD32* buffer = (DWORD32*)address;
 
+	// Inicializar os elementos do buffer circular a 0
 	for (int i = 0; i < SHARED_COMMAND_BUFFER_CHARS; i++) {
 		buffer[i] = 0;
 	}
@@ -247,11 +248,14 @@ int WriteCircularBufferChar(LPVOID address, TCHAR* cmdStr) {
 	DWORD32* buffer = (DWORD32*)address;
 	TCHAR* strBuf = (TCHAR*)address;
 
+	// Obter os índices
 	int* in = &(buffer[SHARED_COMMAND_BUFFER_CHARS + 1]), * out = &(buffer[SHARED_COMMAND_BUFFER_CHARS + 2]);
 
 	*in = (*out + 1) % SHARED_COMMAND_BUFFER_CHARS;
 	*out = (*in + size) % SHARED_COMMAND_BUFFER_CHARS - 1;
 
+
+	// Copia os caracteres de cmdStr para o buffer circular
 	for (int i = 0; i < size; i++) {
 		strBuf[((*in) + i) % SHARED_COMMAND_BUFFER_CHARS] = cmdStr[i];
 	}
@@ -264,20 +268,26 @@ int ReadCircularBufferChar(LPVOID address, TCHAR* cmdStr, int max) {
 	DWORD32* buffer = (DWORD32*)address;
 	TCHAR* strBuf = (TCHAR*)address;
 
+	// Iterar os índices
 	int in = buffer[SHARED_COMMAND_BUFFER_CHARS + 1], out = buffer[SHARED_COMMAND_BUFFER_CHARS + 2];
 
+	// Calcula o tamanho dos dados no buffer circular
 	int size = in < out ? out - in : SHARED_COMMAND_BUFFER_CHARS - in + out;
-	size++; // Correção do tamanho real
+
+	// Correção do tamanho real
+	size++; 
 
 	if (size + 1 > max) {
 		_tprintf_s(_T("A string introduzida não aguenta o tamanho escrito no buffer!\n"));
 		return 1;
 	}
 
+	// Copia os caracteres do buffer circular para a output string (cmdStr)
 	for (int i = 0; i < size; i++) {
 		cmdStr[i] = strBuf[(in + i) % SHARED_COMMAND_BUFFER_CHARS];
 	}
 
+	// Termina a string com \0
 	cmdStr[size] = _T('\0');
 
 	return 0;
@@ -286,6 +296,7 @@ int ReadCircularBufferChar(LPVOID address, TCHAR* cmdStr, int max) {
 DLL_API int WriteCircularBufferDWORD(LPVOID address, DWORD32 dword) {
 	DWORD32* buffer = (DWORD32*)address;
 
+	// Incrementar os índices
 	int* in = &(buffer[SHARED_COMMAND_BUFFER_CHARS + 1]), * out = &(buffer[SHARED_COMMAND_BUFFER_CHARS + 2]);
 
 	*in = (*out + 1) % SHARED_COMMAND_BUFFER_CHARS;
@@ -300,8 +311,10 @@ DLL_API int WriteCircularBufferDWORD(LPVOID address, DWORD32 dword) {
 DLL_API int ReadCircularBufferDWORD(LPVOID address, DWORD32* dword) {
 	DWORD32* buffer = (DWORD32*)address;
 
+	// Iterar o índice
 	int in = buffer[SHARED_COMMAND_BUFFER_CHARS + 1];
 
+	// Colocar o que lemos para a string
 	*dword = buffer[in];
 
 	return 0;
@@ -328,5 +341,6 @@ int GetCommandErrorSTR(TCHAR* str, int size, int err) {
 	default:
 		return 1;
 	}
+
 	return wrote;
 }
