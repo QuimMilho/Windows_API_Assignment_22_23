@@ -6,19 +6,12 @@
 #include "Handler.h"
 #include "MemoryDLL.h"
 
-// Definições
-
-#define MAX 250
-
-typedef struct arguments { TCHAR arg[MAX]; } Args;
-
-int execute(TCHAR* cmdName, Args* args, int nargs, int origin, THREADINFO* threadInfo);
-
 // Reencaminha os comandos para onde podem ser executados
 // Comandos de server: pausa, retoma, recomeça, sair, define
 // Comandos de server + operator: stop, obstáculo, inverte
 
 //Funcoes 
+
 
 int getCommands(THREADINFO * threadInfo) {
 	TCHAR cmd[MAX];
@@ -33,7 +26,7 @@ int getCommands(THREADINFO * threadInfo) {
 				TCHAR errSTR[100];
 				err = GetCommandErrorSTR(errSTR, 100, err);
 				if (err) {
-					_tprintf_s("Algo correu mal ao procurar o erro de um comando!\n");
+					_tprintf_s(_T("Algo correu mal ao procurar o erro de um comando!\n"));
 					threadInfo->running = FALSE;
 					break;
 				}
