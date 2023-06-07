@@ -55,7 +55,7 @@ int createGame(JOGO* jogo, int nSapos, GAME_SETTINGS * gs) {
 	if (nSapos == 2) {
 		jogo->sapos[1].lastMoved = 0;
 		int k = genRand(19);
-		if (k >= jogo->sapos[0].y) k++;
+		if (k >= jogo->sapos[0].x) k++;
 		jogo->sapos[1].x = k;
 		jogo->sapos[1].y = 0;
 	}
@@ -93,6 +93,7 @@ int createGame(JOGO* jogo, int nSapos, GAME_SETTINGS * gs) {
 int moveCars(JOGO* jogo) {
 	for (int i = 0; i < jogo->totalDeCarros; i++) {
 		jogo->carros[i].x += (jogo->carros[i].vel * jogo->direcao[jogo->carros[i].y - 1]);
+		// Fora dos limites
 		if (jogo->carros[i].x < 0 || jogo->carros[i].x > 20) {
 			int err = removeCar(jogo, i);
 			if (err) {
@@ -100,7 +101,9 @@ int moveCars(JOGO* jogo) {
 			}
 			i--;
 		}
+		// Colisões
 		int x = floor(jogo->carros[i].x), y = floor(jogo->carros->y);
+		//		Carros
 		for (int h = 0; h < jogo->totalDeCarros; h++) {
 			if (&(jogo->carros[i]) != &(jogo->carros[h])) {
 				int cX = floor(jogo->carros[h].x), cY = floor(jogo->carros[h].y);
@@ -109,6 +112,7 @@ int moveCars(JOGO* jogo) {
 				}
 			}
 		}
+		//		Obstaculo
 		for (int h = 0; h < jogo->nObstaculos; h++) {
 			int cX = floor(jogo->obstaculos[h].x), cY = floor(jogo->obstaculos[h].y);
 			if (y == cY && x == cX) {
@@ -137,7 +141,7 @@ int addCars(JOGO* jogo, GAME_SETTINGS* gs) {
 	}
 	for (int i = 0; i < jogo->nLanes; i++) {
 		if (k[i] != -1 && k[i] < 8) {
-			if (genRand(PROB_GERAR_CARRO + k[i] - 4) == 0) {
+			if (genRand(PROB_GERAR_CARRO + k[i]) == 0) {
 				int err = addCar(jogo, i, gs);
 				if (err) {
 					_tprintf_s(_T("Ocorreu um erro ao adicionar um carro na faixa %d\n"), i + 1);

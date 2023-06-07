@@ -22,7 +22,7 @@ int mainLoop(THREADINFO* ti);
 // Cria as chaves da registry
 int createOptions(GAME_SETTINGS* gameSettings) {
 
-	HKEY hKey, hKeyVel, hKeyLane;
+	HKEY hKey;
 	LONG createStatus;
 
     // Criar a chave do jogo em HKEY_CURRENT_USER\Software
