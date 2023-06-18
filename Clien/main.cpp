@@ -35,7 +35,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     wc.lpszClassName = CLASS_NAME;
 
     // Load the icon from the .ico file
-    HICON hIcon = static_cast<HICON>(LoadImage(NULL, L"frog.ico", IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
+    HICON hIcon = static_cast<HICON>(LoadImage(NULL, _T("frog.ico"), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
 
     if (hIcon)
     {
@@ -90,7 +90,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         // Load the bitmaps
         hFrogBitmap = (HBITMAP)LoadImage(NULL, _T("frog1.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
         GetObject(hFrogBitmap, sizeof(frogBitmap), &frogBitmap);
-
 
         hCarBitmap = (HBITMAP)LoadImage(NULL, _T("carL-R.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
         GetObject(hTreeBitmap, sizeof(treeBitmap), &treeBitmap);
@@ -206,7 +205,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DrawText(hdc, timeValue, -1, &timeRect, DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
 
         // Print the frog in the center of the bottom dark green rectangle
-        printIcon(hwnd, hdc, 7, 15, OP_SAPO);
+        printIcon(hwnd, hdc, 5, 5, OP_SAPO);
 
         EndPaint(hwnd, &ps);
         return 0;
@@ -219,8 +218,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void printIcon(HWND hwnd, HDC hdc, int x, int y, int flag)
 {
-
-    MessageBox(hwnd, _T("Teste!"), _T("Error"), MB_OK | MB_ICONERROR);
     // Calculate the size of each cell in the fictional grid
     int cellWidth = WIDTH / 16;
     int cellHeight = HEIGHT / 7;
@@ -243,13 +240,17 @@ void printIcon(HWND hwnd, HDC hdc, int x, int y, int flag)
 
     // Create a memory device context compatible with the window's DC
     HDC memDC = CreateCompatibleDC(hdc);
+
+    if (!memDC)
+    {
+        // Failed to create compatible device context
+        return;
+    }
+
     HBITMAP hOldBitmap = (HBITMAP)SelectObject(memDC, hBitmap);
 
     // Draw the icon at the specified position
-    BOOL result = BitBlt(hdc, posX, posY, cellWidth, cellHeight, memDC, 0, 0, SRCCOPY);
-    if (result) {
-        MessageBox(hwnd, _T("TRUE"), _T("Error"), MB_OK | MB_ICONERROR);
-    } else MessageBox(hwnd, _T("FALSE"), _T("Error"), MB_OK | MB_ICONERROR);
+    BitBlt(hdc, posX, posY, cellWidth, cellHeight, memDC, 0, 0, SRCCOPY);
 
     // Clean up resources
     SelectObject(memDC, hOldBitmap);
