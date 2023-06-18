@@ -11,8 +11,7 @@ int removeCar(JOGO* jogo, int index);
 
 float getSpeed(int level, GAME_SETTINGS* gs);
 
-int addObstaculo(JOGO* jogo);
-int removeObstaculo(JOGO* jogo);
+int hasObstaculo(JOGO* jogo, int x, int y);
 
 // Função de tick do jogo
 
@@ -39,14 +38,6 @@ int createGame(JOGO* jogo, int nSapos, GAME_SETTINGS * gs) {
 	// Define o número de sapos
 	jogo->nSapos = nSapos;
 
-	// Alloca a memória dos sapos
-	jogo->sapos = malloc(sizeof(SAPO) * nSapos);
-
-	if (jogo->sapos == NULL) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a memória dos sapos.\n"));
-		return 1;
-	}
-
 	// Define os sapos
 	jogo->sapos[0].lastMoved = 0;
 	jogo->sapos[0].x = genRand(20);
@@ -66,13 +57,6 @@ int createGame(JOGO* jogo, int nSapos, GAME_SETTINGS * gs) {
 	// Define o número de faixas do jogo atual
 	jogo->nLanes = gs->lanes;
 
-	// Alloca a memória da array do número de carros
-	jogo->direcao = malloc(sizeof(int) * gs->lanes);
-	if (jogo->direcao == NULL) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a memória da array da direção das faixas.\n"));
-		return 1;
-	}
-
 	for (int i = 0; i < gs->lanes; i++) {
 		jogo->direcao[i] = genRand(2);
 		if (jogo->direcao[i] == 0) jogo->direcao[i] = -1;
@@ -80,12 +64,8 @@ int createGame(JOGO* jogo, int nSapos, GAME_SETTINGS * gs) {
 
 	jogo->totalDeCarros = 0;
 
-	// Define o ponteiro para os carros para NULL (No início ainda não há carros)
-	jogo->carros = NULL;
-
 	// Define o número de obstáculos como 0 e o ponteiro dos mesmos para NULL
 	jogo->nObstaculos = 0;
-	jogo->obstaculos = NULL;
 
 	return 0;
 }
@@ -112,7 +92,7 @@ int moveCars(JOGO* jogo) {
 				}
 			}
 		}
-		//		Obstaculo
+		// Obstaculo
 		for (int h = 0; h < jogo->nObstaculos; h++) {
 			int cX = floor(jogo->obstaculos[h].x), cY = floor(jogo->obstaculos[h].y);
 			if (y == cY && x == cX) {
@@ -154,40 +134,28 @@ int addCars(JOGO* jogo, GAME_SETTINGS* gs) {
 }
 
 int addCar(JOGO* jogo, int lane, GAME_SETTINGS* gs) {
-	CARRO* temp = realloc(jogo->carros, sizeof(CARRO) * (jogo->totalDeCarros + 1));
-	if (temp == NULL) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a memória dos carros!\n"));
-		destroyGame(jogo);
-		return 1;
-	}
-	jogo->carros = temp;
+	if (jogo->totalDeCarros == MAX_CARS) return 1;
+
 	jogo->carros[jogo->totalDeCarros].x = jogo->direcao[lane] == 1 ? 0 : 20;
 	jogo->carros[jogo->totalDeCarros].y = lane + 1;
 	jogo->carros[jogo->totalDeCarros].vel = getSpeed(jogo->level, gs);
+
 	jogo->totalDeCarros++;
+
 	return 0;
 }
 
 int removeCar(JOGO* jogo, int index) {
-	CARRO* temp = malloc(sizeof(CARRO) * (jogo->totalDeCarros - 1));
-	if (temp == NULL) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a nova memória dos carros!"));
-		destroyGame(jogo);
-		return 1;
-	}
-	BOOL passed = FALSE;
-	for (int i = 0; i < jogo->totalDeCarros; i++) {
-		if (i == index) {
-			passed = TRUE;
-			continue;
+	if (index >= jogo->totalDeCarros) return 1;
+
+	for (int i = 0; i < jogo->totalDeCarros - 1; i++) {
+		if (i >= index) {
+			jogo->carros[i].vel = jogo->carros[i + 1].vel;
+			jogo->carros[i].x = jogo->carros[i + 1].x;
+			jogo->carros[i].y = jogo->carros[i + 1].y;
 		}
-		int h = passed ? i - 1 : i;
-		temp[h].vel = jogo->carros[i].vel;
-		temp[h].x = jogo->carros[i].x;
-		temp[h].y = jogo->carros[i].y;
 	}
-	free(jogo->carros);
-	jogo->carros = temp;
+
 	jogo->totalDeCarros--;
 
 	return 0;
@@ -198,10 +166,36 @@ float getSpeed(int level, GAME_SETTINGS* gs) {
 	else return gs->init_speed / (float) TICKRATE * pow(LEVEL_SPEED_MULTIPLIER, level);
 }
 
-int addObstaculo(JOGO* jogo) {
+int addObstaculo(JOGO* jogo, int x, int y) {
+	if (jogo->nObstaculos == MAX_OBSTACULOS) return 1;
 
+	if (hasObstaculo(jogo, x, y)) return 1;
+
+	jogo->obstaculos[jogo->nObstaculos].x = x;
+	jogo->obstaculos[jogo->nObstaculos].y = y;
+	jogo->nObstaculos++;
+
+	return 0;
 }
 
-int removeObstaculo(JOGO* jogo) {
+int removeObstaculo(JOGO* jogo, int index) {
+	if (index >= jogo->nObstaculos) return 1;
 
+	for (int i = 0; i < jogo->nObstaculos - 1; i++) {
+		if (i >= index) {
+			jogo->obstaculos[i].x = jogo->obstaculos[i + 1].x;
+			jogo->obstaculos[i].y = jogo->obstaculos[i + 1].y;
+		}
+	}
+
+	jogo->nObstaculos--;
+
+	return 0;
+}
+
+int hasObstaculo(JOGO* jogo, int x, int y) {
+	for (int i = 0; i < jogo->nObstaculos; i++) 
+		if (jogo->obstaculos[i].x == x && jogo->obstaculos[i].y == y) 
+			return 1;
+	return 0;
 }

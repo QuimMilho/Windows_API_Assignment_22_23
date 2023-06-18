@@ -112,7 +112,7 @@ int setOptions(HKEY * hKey, GAME_SETTINGS* gameSettings, LPSTR option, DWORD val
     setValueStatus = RegSetValueEx(*hKey, option, 0, REG_DWORD, (const BYTE*)&value, sizeof(DWORD));
 
     if (setValueStatus != ERROR_SUCCESS) {
-        _tprintf_s(_T("Erro ao atribuir valor à sub-chave '%s'. Código de Erro: %ld\n"), option, setValueStatus);
+        _tprintf_s(_T("Erro ao atribuir valor à sub-chave '%s'. Código de Erro: %ld\n"), (TCHAR *) option, setValueStatus);
         if (!keyAlreadyOpened) RegCloseKey(*hKey);
         return 1;
     }
@@ -243,6 +243,8 @@ int mainLoop(THREADINFO* ti) {
 
     err = createGame(&jogo, 2, ti->gs);
 
+    ti->jogo = &jogo;
+
     if (err) {
         _tprintf_s(_T("Erro ao criar instância inicial do jogo!\n"));
         return 1;
@@ -263,33 +265,6 @@ int mainLoop(THREADINFO* ti) {
 		if (elapsed_time >= delta) {
 			last = now;
 
-            //Procura por comandos executados
-            DWORD t = WaitForSingleObject(commandWriteEvent, 0);
-
-            if (t == WAIT_OBJECT_0) {
-                TCHAR* temp = malloc(sizeof(TCHAR) * SHARED_COMMAND_BUFFER_CHARS);
-                if (temp == NULL) {
-                    _tprintf_s(_T("Ocorreu um erro ao allocar memória para o buffer de comandos!\n"));
-                    break;
-                }
-                err = ReadCircularBufferChar(cmdAddress, temp, SHARED_COMMAND_BUFFER_CHARS);
-                if (err) {
-                    _tprintf_s(_T("Ocorreu um erro ao ler o comando da memória partilhada!\n"));
-                    break;
-                }
-                err = process(temp, OPERATOR, ti);
-                WriteCircularBufferDWORD(cmdAddress, err);
-                SetEvent(commandReadEvent);
-                free(temp);
-                do {
-                    err = WaitForSingleObject(commandWriteEvent, 0);
-                } while (err == WAIT_TIMEOUT);
-            }
-            else if (t != WAIT_TIMEOUT) {
-                _tprintf_s(_T("Ocorreu um erro ao esperar por um evento!\n"));
-                break;
-            }
-
             // Game tick
 			err = tick(&jogo, ti->gs, ticks);
 			ticks++;
@@ -299,25 +274,9 @@ int mainLoop(THREADINFO* ti) {
                 break;
             }
 
-            saveStructures(gameAddress, &jogo);
-
-            // Informa os operadores que devem atualizar
-            SetEvent(serverTickEvent);
-            // Espera 5ms para dar reset ao evento
-            Sleep(1);
-            ResetEvent(serverTickEvent);
+            save();
 		}
 
-		// Cálculo do tempo entre o ultimo print e o tempo atual (Imprime 1 vez por segundo)
-		/*
-		eleapsed_time = floor((now.QuadPart - lastPrint.QuadPart) / (double)frequency.QuadPart * PRECISION);
-		// Uma vez por segundo são impressas as tickrates
-		if (eleapsed_time > PRECISION) {
-			lastPrint = now;
-			_tprintf(_T("%d %d\n"), ticks, ticks - lastPrinted);
-			lastPrinted = ticks;
-		}
-		*/
 	}
 
     destroyGame(&jogo);
@@ -331,6 +290,14 @@ int mainLoop(THREADINFO* ti) {
     CloseHandle(commandWriteEvent);
 
 	return 0;
+}
+
+int save(LPVOID adress, JOGO * jogo, HANDLE saveTickEvent, HANDLE semaphore) {
+
+
+    saveStructures(adress, &jogo);
+
+
 }
 
 int initRandom() {

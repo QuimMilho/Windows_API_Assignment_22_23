@@ -44,9 +44,3 @@ DLL_API int StartCircularBuffer(LPVOID address);
 DLL_API int WriteCircularBufferChar(LPVOID address, TCHAR* cmdStr);
 
 DLL_API int ReadCircularBufferChar(LPVOID address, TCHAR* cmdStr, int max);
-
-DLL_API int WriteCircularBufferDWORD(LPVOID address, DWORD32 dword);
-
-DLL_API int ReadCircularBufferDWORD(LPVOID address, DWORD32* dword);
-
-DLL_API int GetCommandErrorSTR(TCHAR* str, int size, int err);

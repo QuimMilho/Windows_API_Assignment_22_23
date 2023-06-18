@@ -23,3 +23,6 @@ int tick(JOGO * jogo, GAME_SETTINGS* gs, int ticks);
 
 // Criar jogo
 int createGame(JOGO* jogo, int nSapos, GAME_SETTINGS* gs);
+
+int addObstaculo(JOGO* jogo, int x, int y);
+int removeObstaculo(JOGO* jogo, int index);

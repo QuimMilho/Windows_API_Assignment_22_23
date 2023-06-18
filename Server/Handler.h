@@ -19,6 +19,7 @@ typedef struct ThreadInfo {
 	BOOL running;		// If thread must be running or not
 	DWORD threadId;		// Thread ID
 	GAME_SETTINGS* gs;
+	JOGO* jogo;
 } THREADINFO;
 
 // REGISTRY
