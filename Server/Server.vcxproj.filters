@@ -27,6 +27,9 @@
     <ClCompile Include="Comands.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OperatorCommands.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Handler.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Commands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

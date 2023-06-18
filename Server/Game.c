@@ -32,9 +32,6 @@ int tick(JOGO* jogo, GAME_SETTINGS* gs, int ticks) {
 }
 
 int createGame(JOGO* jogo, int nSapos, GAME_SETTINGS * gs) {
-	// Destroi o jogo antigo para previnir memory leaks
-	destroyGame(jogo);
-
 	// Define o número de sapos
 	jogo->nSapos = nSapos;
 

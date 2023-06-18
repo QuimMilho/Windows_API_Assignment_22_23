@@ -20,6 +20,8 @@ typedef struct ThreadInfo {
 	DWORD threadId;		// Thread ID
 	GAME_SETTINGS* gs;
 	JOGO* jogo;
+	HANDLE opCmdThread;
+	DWORD opCmdThreadId;
 } THREADINFO;
 
 // REGISTRY

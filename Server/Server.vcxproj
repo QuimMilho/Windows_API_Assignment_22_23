@@ -23,11 +23,13 @@
     <ClCompile Include="core.c" />
     <ClCompile Include="Game.c" />
     <ClCompile Include="Handler.c" />
+    <ClCompile Include="OperatorCommands.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Commands.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Handler.h" />
+    <ClInclude Include="OperatorCommands.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

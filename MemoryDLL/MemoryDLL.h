@@ -12,12 +12,9 @@
 #endif
 
 #define SHARED_SERVER_MEMORY _T("ServerSapoShared")
-#define SHARED_SERVER_TOTAL_BYTES 1100
 
 #define SHARED_COMMAND_MEMORY _T("ServerSapoCommands")
 #define SHARED_COMMAND_BUFFER_CHARS 100
-
-DLL_API int totalSize();
 
 DLL_API int createGameFile(HANDLE* hFile);
 
@@ -25,11 +22,7 @@ DLL_API int openGameFile(HANDLE* hFile);
 
 DLL_API int mapGameSharedFile(HANDLE hFile, LPVOID* lpMapAddress, DWORD permissions);
 
-DLL_API int saveStructures(LPVOID address, JOGO* jogo);
-
-DLL_API int toStructures(LPVOID address, JOGO* jogo);
-
-DLL_API int destroyGame(JOGO* jogo);
+DLL_API int copyGame(JOGO * from, JOGO * to);
 
 DLL_API int createCommandFile(HANDLE* hFile);
 

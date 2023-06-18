@@ -3,6 +3,7 @@
 #include "Items.h"
 #include "MemoryDLL.h"
 #include "Commands.h"
+#include "OperatorCommands.h"
 
 #include <time.h>
 #include <tchar.h>
@@ -131,7 +132,7 @@ DWORD WINAPI GameThread(LPVOID lpParam) {
         _tprintf_s(_T("Ocorreu um erro ao começar o main loop!\n"));
         return 1;
     }
-	_tprintf_s(_T("Thread terminado!\n"));
+	_tprintf_s(_T("Game Thread terminado!\n"));
 	return 0;
 }
 
@@ -187,55 +188,6 @@ int mainLoop(THREADINFO* ti) {
         return 1;
     }
 
-    // ---------------------- Comandos operador ----------------------
-
-    HANDLE commandWriteEvent = CreateEvent(NULL, TRUE, FALSE, SERVER_COMMAND_WRITE);
-
-    if (commandWriteEvent == NULL) {
-        _tprintf_s(_T("O evento %s não foi criado! Código de Erro: %d\n"), SERVER_TICK_EVENT, GetLastError());
-        closeSharedFile(&gameFile, &gameAddress);
-        CloseHandle(serverTickEvent);
-        return 1;
-    }
-
-    HANDLE commandReadEvent = CreateEvent(NULL, FALSE, FALSE, SERVER_COMMAND_READ);
-
-    if (commandReadEvent == NULL) {
-        _tprintf_s(_T("O evento %s não foi criado! Código de Erro: %d\n"), SERVER_TICK_EVENT, GetLastError());
-        closeSharedFile(&gameFile, &gameAddress);
-        CloseHandle(serverTickEvent);
-        CloseHandle(commandWriteEvent);
-        return 1;
-    }
-
-    HANDLE cmdFile;
-
-    err = createCommandFile(&cmdFile);
-
-    if (err) {
-        _tprintf_s(_T("Erro ao criar ficheiro da memória partilhada dos comandos\n"));
-        closeSharedFile(&gameFile, &gameAddress);
-        CloseHandle(serverTickEvent);
-        CloseHandle(commandWriteEvent);
-        CloseHandle(commandReadEvent);
-        return 1;
-    }
-
-    // Mapeia a memória partilhada
-    LPVOID cmdAddress;
-    err = mapGameSharedFile(cmdFile, &cmdAddress, FILE_MAP_ALL_ACCESS);
-    if (err) {
-        _tprintf_s(_T("Erro ao mapear a memória partilhada dos comandos\n"));
-        closeSharedFile(&gameFile, &gameAddress);
-        CloseHandle(serverTickEvent);
-        CloseHandle(commandWriteEvent);
-        CloseHandle(commandReadEvent);
-        CloseHandle(cmdFile);
-        return 1;
-    }
-
-    StartCircularBuffer(cmdAddress);
-
     // Define o server como running!
 
     // Cria o jogo
@@ -251,6 +203,8 @@ int mainLoop(THREADINFO* ti) {
     }
 
     ti->running = TRUE;
+
+    ti->opCmdThread = CreateThread(NULL, 0, CommandsThread, (LPVOID)&ti, 0, &(ti->opCmdThreadId));
 
 	// Game loop
 	while (ti->running) {
@@ -274,20 +228,14 @@ int mainLoop(THREADINFO* ti) {
                 break;
             }
 
-            save();
+            save(gameAddress, &jogo, serverTickEvent, NULL);
 		}
 
 	}
 
-    destroyGame(&jogo);
-
     CloseHandle(serverTickEvent);
 
     closeSharedFile(&gameFile, &gameAddress);
-    closeSharedFile(&cmdFile, &cmdAddress);
-
-    CloseHandle(serverTickEvent);
-    CloseHandle(commandWriteEvent);
 
 	return 0;
 }
@@ -295,7 +243,7 @@ int mainLoop(THREADINFO* ti) {
 int save(LPVOID adress, JOGO * jogo, HANDLE saveTickEvent, HANDLE semaphore) {
 
 
-    saveStructures(adress, &jogo);
+    copyGame(adress, &jogo);
 
 
 }

@@ -109,16 +109,20 @@ int execute(TCHAR* cmdName, Args* args, int nargs, int origin, THREADINFO* threa
 	{
 	case SERVER:
 		if (_tcscmp(cmdName, _T("pausa")) == 0) {
+			SuspendThread(threadInfo->thread);
 			return DONE;
 		}
 		else if (_tcscmp(cmdName, _T("retoma")) == 0) {
+			ResumeThread(threadInfo->thread);
 			return DONE;
 		}
 		else if (_tcscmp(cmdName, _T("recomeça")) == 0) {
+			createGame(threadInfo->jogo, strcmp(args->arg[0] ? args->arg[0] : _T("2"), _T("1") == 0 ? 1 : 2), threadInfo->gs);
 			return DONE;
 		}
 		else if (_tcscmp(cmdName, _T("sair")) == 0) {
 			threadInfo->running = FALSE;
+			ResumeThread(threadInfo->thread);
 			return DONE;
 		}
 		else if (_tcscmp(cmdName, _T("define")) == 0) {
@@ -126,12 +130,15 @@ int execute(TCHAR* cmdName, Args* args, int nargs, int origin, THREADINFO* threa
 		}
 	case OPERATOR:
 		if (_tcscmp(cmdName, _T("stop")) == 0) {
+			_tprintf_s(_T("stop!"));
 			return DONE;
 		}
 		else if (_tcscmp(cmdName, _T("obstáculo")) == 0) {
+			_tprintf_s(_T("obstáculo!"));
 			return DONE;
 		}
 		else if (_tcscmp(cmdName, _T("inverte")) == 0) {
+			_tprintf_s(_T("inverte!"));
 			return DONE;
 		}
 		else return NO_EXIST;

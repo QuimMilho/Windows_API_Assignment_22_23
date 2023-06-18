@@ -59,7 +59,7 @@ DWORD WINAPI BoardThread(LPVOID lpParam) {
 		}
 
 		JOGO jogo = {0, NULL, 0, 0, NULL, NULL, 0, NULL};
-		toStructures(gameInfo, &jogo);
+		copyGame(&jogo, gameInfo);
 		CHAR_INFO* tab = malloc(sizeof(CHAR_INFO) * (jogo.nLanes + 2) * 20);
 		if (tab == NULL) {
 			_tprintf_s(_T("Ocorreu um erro ao alocar a memória da array de chars\n"));
@@ -70,7 +70,6 @@ DWORD WINAPI BoardThread(LPVOID lpParam) {
 		printTab(tab, jogo.nLanes);
 
 		free(tab);
-		destroyGame(&jogo);
 
 		do {
 			dwEventResult = WaitForSingleObject(hEvent, 0);

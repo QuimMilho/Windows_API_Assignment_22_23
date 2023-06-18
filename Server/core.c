@@ -52,7 +52,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     // Loop do jogo
 
-    THREADINFO threadInfo = { NULL, FALSE, 0, &gs };
+    THREADINFO threadInfo = { NULL, FALSE, 0, &gs, NULL, NULL, 0 };
     threadInfo.thread = CreateThread(NULL, 0, GameThread, (LPVOID) & threadInfo, 0, &(threadInfo.threadId));
 
     //Comandos
@@ -63,6 +63,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     // Verifica se a Thread já está fechada
     
     if (threadInfo.thread) WaitForSingleObject(threadInfo.thread, 5000);
+    if (threadInfo.opCmdThread) WaitForSingleObject(threadInfo.opCmdThread, 5000);
 
     // O mutex é libertado para um novo servidor poder ser aberto
 

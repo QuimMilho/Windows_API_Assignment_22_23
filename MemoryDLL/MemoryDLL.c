@@ -3,23 +3,8 @@
 
 #include <tchar.h>
 
-// Tamanho m�ximo do jogo
-
-int totalSize() {
-	int k = sizeof(int) + sizeof(SAPO) * 2 + sizeof(int) * 10 + sizeof(CARRO) * 64 + 
-		sizeof(int) + sizeof(OBSTACULO) * MAX_OBSTACULOS;
-	return k;
-}
-
-// Game Files
-// 
-// Maping:
-// int n Sapos - Sapos (1 ou 2) - int level - int nFaixas - int nCarrosF1 - CarrosF1 - int nCarrosF2 - CarrosF2 - ...
-//		- int nObstaculos - Obstaculos
-//
-
 int createGameFile(HANDLE * hFile) {
-	(*hFile) = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, SHARED_SERVER_TOTAL_BYTES, 
+	(*hFile) = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(JOGO),
 		SHARED_SERVER_MEMORY);
 	if (*hFile == NULL) return 1;
 	return 0;
@@ -39,152 +24,33 @@ int mapGameSharedFile(HANDLE hFile, LPVOID * lpMapAddress, DWORD permissions) {
 
 // Transforma a mem�ria partilhada em elementos organizados
 
-int saveStructures(LPVOID address, JOGO * jogo) {
-	if (address == NULL) return 1;
+int copyGame(JOGO* to, JOGO* from) {
+	to->nSapos = from->nSapos;
+	to->nLanes = from->nLanes;
+	to->level = from->level;
+	to->nObstaculos = from->nObstaculos;
+	to->totalDeCarros = from->totalDeCarros;
 
-	// Pos no buffer
-	int bufPos = 0;
-	DWORD32* buffer = (DWORD32*)address;
-
-	// n de sapos
-	buffer[bufPos++] = jogo->nSapos;
-
-	// Define o primeiro sapo
-	buffer[bufPos++] = jogo->sapos[0].x;
-	buffer[bufPos++] = jogo->sapos[0].y;
-	buffer[bufPos++] = jogo->sapos[0].lastMoved;
-
-	// Define o segundo sapo
-	if (jogo->nSapos == 2) {
-		buffer[bufPos++] = jogo->sapos[1].x;
-		buffer[bufPos++] = jogo->sapos[1].y;
-		buffer[bufPos++] = jogo->sapos[1].lastMoved;
+	for (int i = 0; i < 2; i++) {
+		to->sapos[i].lastMoved = from->sapos[i].lastMoved;
+		to->sapos[i].x = from->sapos[i].x;
+		to->sapos[i].y = from->sapos[i].y;
 	}
 
-	// n do n�vel e de faixas
-	buffer[bufPos++] = jogo->level;
-	buffer[bufPos++] = jogo->nLanes;
-
-	// Total de carros
-	buffer[bufPos++] = jogo->totalDeCarros;
-
-	//Percorre as faixas e adiciona os carros � mem�ria partilhada.
-	for (int i = 0; i < jogo->nLanes; i++) {
-		// Vai buscar o numero de carros na faixa i
-		buffer[bufPos++] = jogo->direcao[i];
+	for (int i = 0; i < from->nLanes; i++) {
+		to->direcao[i] = from->direcao[i];
 	}
 
-	for (int i = 0; i < jogo->totalDeCarros; i++) {
-		buffer[bufPos++] = jogo->carros[i].x;
-		buffer[bufPos++] = jogo->carros[i].y;
-		buffer[bufPos++] = jogo->carros[i].vel;
-	}
-	// n de obstaculos
-	buffer[bufPos++] = jogo->nObstaculos;
-
-	// Atribui os valores dos obst�culos
-	for (int i = 0; i < jogo->nObstaculos; i++) {
-		buffer[bufPos++] = jogo->obstaculos[i].x;
-		buffer[bufPos++] = jogo->obstaculos[i].y;
+	for (int i = 0; i < from->totalDeCarros; i++) {
+		to->carros[i].vel = from->carros[i].vel;
+		to->carros[i].x = from->carros[i].x;
+		to->carros[i].y = from->carros[i].y;
 	}
 
-	return 0;
-}
-
-int toStructures(LPVOID address, JOGO* jogo) {
-	if (address == NULL) return 1;
-
-	// Pos no buffer
-	int bufPos = 0;
-	DWORD32* buffer = (DWORD32*) address;
-
-	// n de sapos
-	jogo->nSapos = (int)buffer[bufPos++];
-
-	// Aloca os sapos na mem�ria
-	jogo->sapos = malloc(sizeof(SAPO) * jogo->nSapos);
-	if (jogo->sapos == NULL) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a mem�ria para os sapos.\n"));
-		return 1;
+	for (int i = 0; i < from->nObstaculos; i++) {
+		to->obstaculos[i].x = from->obstaculos[i].x;
+		to->obstaculos[i].y = from->obstaculos[i].y;
 	}
-
-	// Define o primeiro sapo
-	jogo->sapos[0].x = (int)buffer[bufPos++];
-	jogo->sapos[0].y = (int)buffer[bufPos++];
-	jogo->sapos[0].lastMoved = (int)buffer[bufPos++];
-
-	// Define o segundo sapo
-	if (jogo->nSapos == 2) {
-		jogo->sapos[1].x = (int)buffer[bufPos++];
-		jogo->sapos[1].y = (int)buffer[bufPos++];
-		jogo->sapos[1].lastMoved = (int)buffer[bufPos++];
-	}
-
-	// n do n�vel e de faixas
-	jogo->level = (int)buffer[bufPos++];
-	jogo->nLanes = (int)buffer[bufPos++];
-
-	// Total de carros
-	jogo->totalDeCarros = buffer[bufPos++];
-
-	// Aloca uma array com nLanes elementos que s�o o n�mero de carros por faixa.
-	jogo->direcao = malloc(sizeof(int) * jogo->nLanes);
-	if (jogo->direcao == NULL) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a mem�ria para o n�mero de carros.\n"));
-		destroyGame(jogo);
-		return 1;
-	}
-
-	//Percorre as faixas e alloca a mem�ria para os carros, adicionando os carros dessa faixa.
-	for (int i = 0; i < jogo->nLanes; i++) {
-
-		// Vai buscar a dire��o da faixa
-		jogo->direcao[i] = (int)buffer[bufPos++];
-	}
-
-	// Alocada mem�ria para os carros
-	jogo->carros = malloc(sizeof(CARRO) * jogo->totalDeCarros);
-	if (jogo->carros == NULL && jogo->totalDeCarros != 0) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a mem�ria para os carros.\n"));
-		destroyGame(jogo);
-		return 1;
-	}
-
-	// Percorre todos os carros e define  os seus valores
-
-	for (int i = 0; i < jogo->totalDeCarros; i++) {
-		jogo->carros[i].x = (int)buffer[bufPos++];
-		jogo->carros[i].y = (float)buffer[bufPos++];
-		jogo->carros[i].vel = (float)buffer[bufPos++];
-	}
-
-	// n de obstaculos
-	jogo->nObstaculos = (int)buffer[bufPos++];
-
-	// Aloca os obst�culos na mem�ria
-	jogo->obstaculos = malloc(sizeof(OBSTACULO) * jogo->nObstaculos);
-	if (jogo->obstaculos == NULL && jogo->obstaculos != 0) {
-		_tprintf_s(_T("Ocorreu um erro ao alocar a mem�ria para os obst�culos.\n"));
-		destroyGame(jogo);
-		return 1;
-	}
-
-	// Atribui os valores dos obst�culos
-	for (int i = 0; i < jogo->nObstaculos; i++) {
-		jogo->obstaculos[i].x = (int)buffer[bufPos++];
-		jogo->obstaculos[i].y = (int)buffer[bufPos++];
-	}
-
-	return 0;
-}
-
-int destroyGame(JOGO* jogo) {
-	if (jogo == NULL) return 1;
-	free(jogo->carros);
-	free(jogo->sapos);
-	free(jogo->obstaculos);
-	free(jogo->direcao);
-	return 0;
 }
 
 // Command Files

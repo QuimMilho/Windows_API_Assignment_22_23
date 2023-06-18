@@ -18,6 +18,7 @@
 
 #define SERVER_COMMAND_WRITE _T("ServerCommandWrite")
 #define SERVER_COMMAND_READ _T("ServerCommandRead")
+#define SERVER_COMMAND_SEMAPHORE _T("ServerCommandSemaphore")
 
 typedef struct Sapo {
 	int x;
